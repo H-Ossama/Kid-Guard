@@ -73,7 +73,9 @@ data class DeviceStats(
     val allowExtensions: Boolean = false,
     val lockReason: String? = null,
     val deviceOwnerCapabilities: DeviceOwnerCapabilities = DeviceOwnerCapabilities(),
-    val blockingScreenStyle: BlockingScreenStyle? = null
+    val blockingScreenStyle: BlockingScreenStyle? = null,
+    val childAppVersionName: String? = null, // Child APK versionName (for parent-pushed updates)
+    val childAppVersionCode: Int = 0 // Child APK versionCode (for parent-pushed updates)
 )
 
 @Serializable

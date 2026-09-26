@@ -328,5 +328,43 @@ class DeviceClient(context: Context? = null) {
     ): Packet.Response? {
         return executeCommand(ip, port, deviceId, "/device-owner", command).response
     }
+
+    /**
+     * Pushes a downloaded child APK to a paired child over LAN (POST /update).
+     * The child installs it silently when it is Device Owner, otherwise Android
+     * shows the install-confirmation screen on the child device.
+     * Returns true when the child accepted the APK for install.
+     */
+    suspend fun uploadChildApk(
+        ip: String,
+        port: Int,
+        deviceId: String?,
+        apkFile: java.io.File
+    ): Boolean = withContext(Dispatchers.IO) {
+        if (!apkFile.exists() || apkFile.length() < 1_000_000) return@withContext false
+        // APK push only works over direct LAN (binary body is too big for BT/relay tiers).
+        if (ip.isBlank() || ip == "0.0.0.0") return@withContext false
+        try {
+            val token = deviceId?.let { pairTokens[it] }
+            val response: Packet.Response? = withTimeoutOrNull(180_000) {
+                client.request {
+                    method = HttpMethod.Post
+                    url {
+                        protocol = URLProtocol.HTTP
+                        host = ip
+                        this.port = port
+                        path("update")
+                    }
+                    if (token != null) header("X-Pair-Token", token)
+                    header("Content-Type", "application/vnd.android.package-archive")
+                    setBody(apkFile.readBytes())
+                }.body()
+            }
+            response?.success == true
+        } catch (e: Exception) {
+            Log.w("DeviceClient", "APK upload failed for $ip:$port: ${e.message}")
+            false
+        }
+    }
 }
 

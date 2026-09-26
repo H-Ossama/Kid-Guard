@@ -23,6 +23,13 @@ import kotlinx.coroutines.cancel
 
 class MonitorService : Service() {
 
+    companion object {
+        /** Best-effort "is the service alive" flag for the boot watchdog. */
+        @Volatile
+        var isRunning: Boolean = false
+            private set
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     private val serviceScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.Job())
@@ -51,6 +58,7 @@ class MonitorService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        isRunning = true
         commandServer = CommandServer(this)
         cloudRelayClient = com.parentalguard.child.network.CloudRelayClient(this)
         val bluetoothFilter = android.content.IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
@@ -112,6 +120,9 @@ class MonitorService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         com.parentalguard.child.data.RuleRepository.initialize(this)
+        // Keep the persisted rescue/watchdog armed so protection survives
+        // reboots and process kills even if the boot receiver was skipped.
+        runCatching { BootRescueJobService.schedule(this) }
         startForeground()
         lockManager = com.parentalguard.child.ui.LockManager(applicationContext)
         startUsageMonitoring() // Coroutine
@@ -196,6 +207,7 @@ if (!::commandServer.isInitialized) {
     }
 
     override fun onDestroy() {
+        isRunning = false
         super.onDestroy()
         runCatching { unregisterReceiver(bluetoothStateReceiver) }
         unregisterReceiver(internalReceiver)

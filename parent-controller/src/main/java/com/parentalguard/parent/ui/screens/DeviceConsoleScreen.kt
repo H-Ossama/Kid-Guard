@@ -47,6 +47,7 @@ import androidx.compose.material.icons.filled.AddAlarm
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
@@ -71,6 +72,7 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TimerOff
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.filled.Work
@@ -489,6 +491,8 @@ private fun NowSegment(
                         onClick = { viewModel.setAppIconVisibility(device, isAppIconHidden) },
                         icon = if (isAppIconHidden) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                         inset = true,
+                        maxLines = 2,
+                        textAlign = TextAlign.Center,
                         modifier = Modifier.weight(1f)
                     )
                     NeumorphicButton(
@@ -496,6 +500,8 @@ private fun NowSegment(
                         onClick = { viewModel.refreshIcons(device) },
                         icon = Icons.Default.Refresh,
                         inset = true,
+                        maxLines = 2,
+                        textAlign = TextAlign.Center,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -620,16 +626,17 @@ private fun BlockingScreenStyleCard(
             style = MaterialTheme.typography.bodySmall
         )
         Spacer(Modifier.height(10.dp))
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(horizontal = 2.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(BlockingScreenStyle.values().toList(), key = { it.name }) { style ->
+            BlockingScreenStyle.values().forEach { style ->
                 BlockingScreenStylePreview(
                     style = style,
                     selected = style == selectedStyle,
                     enabled = enabled,
-                    onClick = { if (style != selectedStyle) onStyleSelected(style) }
+                    onClick = { if (style != selectedStyle) onStyleSelected(style) },
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -641,27 +648,25 @@ private fun BlockingScreenStylePreview(
     style: BlockingScreenStyle,
     selected: Boolean,
     enabled: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val accent = if (selected) Nm.primary else Nm.onSurfaceMuted
     NeumorphicCard(
-        modifier = Modifier
-            .width(154.dp)
-            .selectable(
-                selected = selected,
-                enabled = enabled,
-                role = Role.RadioButton,
-                onClick = onClick
-            ),
-        padding = 10.dp,
-        corner = 20.dp,
-        backgroundColor = if (selected) Nm.primary.copy(alpha = 0.08f) else Nm.surface
+        modifier = modifier.selectable(
+            selected = selected,
+            enabled = enabled,
+            role = Role.RadioButton,
+            onClick = onClick
+        ),
+        padding = 8.dp,
+        corner = 16.dp,
+        backgroundColor = if (selected) Nm.primary.copy(alpha = 0.10f) else Nm.surface
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(104.dp)
-                .clip(RoundedCornerShape(14.dp))
+                .height(74.dp)
+                .clip(RoundedCornerShape(11.dp))
                 .background(
                     when (style) {
                         BlockingScreenStyle.CURRENT -> Nm.inset
@@ -674,35 +679,37 @@ private fun BlockingScreenStylePreview(
             when (style) {
                 BlockingScreenStyle.CURRENT -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Shield, null, tint = Nm.primary, modifier = Modifier.size(24.dp))
-                        Spacer(Modifier.height(5.dp))
+                        Icon(Icons.Default.Shield, null, tint = Nm.primary, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.height(3.dp))
                         Text(
                             stringResource(R.string.blocking_style_current_preview),
                             color = Nm.onSurface,
-                            style = MaterialTheme.typography.labelSmall
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
                 BlockingScreenStyle.BLACKOUT -> {
-                    Text(
-                        stringResource(R.string.blocking_style_blackout_preview),
-                        color = Color.White.copy(alpha = 0.72f),
-                        style = MaterialTheme.typography.labelSmall
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.Lock, null, tint = Color.White.copy(alpha = 0.72f), modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.height(3.dp))
+                        Text(
+                            stringResource(R.string.blocking_style_blackout_preview),
+                            color = Color.White.copy(alpha = 0.72f),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
                 BlockingScreenStyle.QUIET_FOCUS -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Timer, null, tint = Color(0xFF62E6D6), modifier = Modifier.size(24.dp))
-                        Spacer(Modifier.height(5.dp))
-                        Text(
-                            stringResource(R.string.blocking_style_focus_preview),
-                            color = Color.White,
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                        Spacer(Modifier.height(5.dp))
+                        Icon(Icons.Default.Timer, null, tint = Color(0xFF62E6D6), modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.height(3.dp))
                         Box(
                             Modifier
-                                .width(70.dp)
+                                .width(44.dp)
                                 .height(3.dp)
                                 .clip(RoundedCornerShape(3.dp))
                                 .background(Color(0xFF62E6D6))
@@ -710,38 +717,35 @@ private fun BlockingScreenStylePreview(
                     }
                 }
             }
+            if (selected) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(5.dp)
+                        .size(18.dp)
+                        .clip(CircleShape)
+                        .background(Nm.primary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(12.dp))
+                }
+            }
         }
-        Spacer(Modifier.height(9.dp))
+        Spacer(Modifier.height(6.dp))
         Text(
             text = when (style) {
                 BlockingScreenStyle.CURRENT -> stringResource(R.string.blocking_style_current)
                 BlockingScreenStyle.BLACKOUT -> stringResource(R.string.blocking_style_blackout)
                 BlockingScreenStyle.QUIET_FOCUS -> stringResource(R.string.blocking_style_quiet_focus)
             },
-            color = Nm.onSurface,
-            style = MaterialTheme.typography.titleSmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Spacer(Modifier.height(3.dp))
-        Text(
-            text = when (style) {
-                BlockingScreenStyle.CURRENT -> stringResource(R.string.blocking_style_current_desc)
-                BlockingScreenStyle.BLACKOUT -> stringResource(R.string.blocking_style_blackout_desc)
-                BlockingScreenStyle.QUIET_FOCUS -> stringResource(R.string.blocking_style_quiet_focus_desc)
-            },
-            color = Nm.onSurfaceMuted,
-            style = MaterialTheme.typography.labelSmall,
+            color = if (selected) Nm.primary else Nm.onSurface,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 32.dp)
         )
-        if (selected) {
-            Spacer(Modifier.height(6.dp))
-            NeumorphicStatusPill(
-                text = stringResource(R.string.blocking_style_selected),
-                color = accent
-            )
-        }
     }
 }
 
@@ -911,6 +915,7 @@ private fun DeviceOwnerStatusHeader(
         else -> CapabilityState.UNKNOWN
     }
     val color = ownerStateColor(state)
+    val granted = state == CapabilityState.AVAILABLE
     NeumorphicCard(
         modifier = Modifier.fillMaxWidth(),
         padding = 16.dp,
@@ -918,16 +923,32 @@ private fun DeviceOwnerStatusHeader(
         backgroundColor = color.copy(alpha = 0.06f)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            NeumorphicStatusDot(color, dotSize = 8.dp)
+            if (granted) {
+                NeumorphicIconTile(
+                    icon = Icons.Default.VerifiedUser,
+                    tint = Nm.success,
+                    size = 46.dp,
+                    iconSize = 22.dp
+                )
+            } else {
+                NeumorphicStatusDot(color, dotSize = 8.dp)
+            }
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    stringResource(R.string.device_owner_controls_title),
+                    text = if (granted) {
+                        stringResource(R.string.device_owner_access_granted)
+                    } else {
+                        stringResource(R.string.device_owner_controls_title)
+                    },
                     color = Nm.onSurface,
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = if (granted) FontWeight.Bold else FontWeight.Medium
                 )
                 Text(
-                    text = when (state) {
+                    text = if (granted) {
+                        stringResource(R.string.device_owner_access_granted_desc)
+                    } else when (state) {
                         CapabilityState.AVAILABLE -> stringResource(R.string.device_owner_status_available)
                         CapabilityState.UNAVAILABLE -> stringResource(R.string.device_owner_status_unavailable)
                         CapabilityState.UNKNOWN -> stringResource(R.string.device_owner_status_unknown)
@@ -954,25 +975,22 @@ private fun OwnerActionCard(
     onBlocked: () -> Unit
 ) {
     val color = ownerStateColor(state)
-    Column(Modifier.fillMaxWidth()) {
-        Box(Modifier.fillMaxWidth().height(2.dp).background(color))
-        NeumorphicCard(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = if (state == CapabilityState.AVAILABLE) onAction else onBlocked,
-            padding = 16.dp,
-            corner = 20.dp
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                NeumorphicIconTile(icon = icon, tint = color, size = 40.dp, iconSize = 19.dp)
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(title, color = Nm.onSurface, style = MaterialTheme.typography.titleSmall)
-                    Spacer(Modifier.height(3.dp))
-                    Text(description, color = Nm.onSurfaceMuted, style = MaterialTheme.typography.bodySmall)
-                }
-                Spacer(Modifier.width(8.dp))
-                Text(actionLabel, color = color, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+    NeumorphicCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = if (state == CapabilityState.AVAILABLE) onAction else onBlocked,
+        padding = 16.dp,
+        corner = 20.dp
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            NeumorphicIconTile(icon = icon, tint = color, size = 40.dp, iconSize = 19.dp)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(title, color = Nm.onSurface, style = MaterialTheme.typography.titleSmall)
+                Spacer(Modifier.height(3.dp))
+                Text(description, color = Nm.onSurfaceMuted, style = MaterialTheme.typography.bodySmall)
             }
+            Spacer(Modifier.width(8.dp))
+            Text(actionLabel, color = color, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -985,34 +1003,31 @@ private fun OwnerWifiCard(
 ) {
     val color = ownerStateColor(state)
     val action: (Boolean) -> Unit = if (state == CapabilityState.AVAILABLE) onAction else { _ -> onBlocked() }
-    Column(Modifier.fillMaxWidth()) {
-        Box(Modifier.fillMaxWidth().height(2.dp).background(color))
-        NeumorphicCard(modifier = Modifier.fillMaxWidth(), padding = 16.dp, corner = 20.dp) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                NeumorphicIconTile(icon = Icons.Default.Wifi, tint = color, size = 40.dp, iconSize = 19.dp)
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.device_owner_wifi_title), color = Nm.onSurface, style = MaterialTheme.typography.titleSmall)
-                    Text(stringResource(R.string.device_owner_wifi_desc), color = Nm.onSurfaceMuted, style = MaterialTheme.typography.bodySmall)
-                }
+    NeumorphicCard(modifier = Modifier.fillMaxWidth(), padding = 16.dp, corner = 20.dp) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            NeumorphicIconTile(icon = Icons.Default.Wifi, tint = color, size = 40.dp, iconSize = 19.dp)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.device_owner_wifi_title), color = Nm.onSurface, style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.device_owner_wifi_desc), color = Nm.onSurfaceMuted, style = MaterialTheme.typography.bodySmall)
             }
-            Spacer(Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MiniAction(
-                    label = stringResource(R.string.device_owner_wifi_on),
-                    icon = Icons.Default.Wifi,
-                    tint = color,
-                    onClick = { action(true) },
-                    modifier = Modifier.weight(1f)
-                )
-                MiniAction(
-                    label = stringResource(R.string.device_owner_wifi_off),
-                    icon = Icons.Default.WifiOff,
-                    tint = color,
-                    onClick = { action(false) },
-                    modifier = Modifier.weight(1f)
-                )
-            }
+        }
+        Spacer(Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MiniAction(
+                label = stringResource(R.string.device_owner_wifi_on),
+                icon = Icons.Default.Wifi,
+                tint = color,
+                onClick = { action(true) },
+                modifier = Modifier.weight(1f)
+            )
+            MiniAction(
+                label = stringResource(R.string.device_owner_wifi_off),
+                icon = Icons.Default.WifiOff,
+                tint = color,
+                onClick = { action(false) },
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
@@ -1030,46 +1045,43 @@ private fun OwnerAppCard(
     val uninstallState = capabilities.stateFor(DeviceOwnerCapability.UNINSTALL_PROTECTION)
     val limitState = capabilities.stateFor(DeviceOwnerCapability.APP_USAGE_LIMITS)
     val color = ownerStateColor(suspensionState)
-    Column(Modifier.fillMaxWidth()) {
-        Box(Modifier.fillMaxWidth().height(2.dp).background(color))
-        NeumorphicCard(modifier = Modifier.fillMaxWidth(), padding = 16.dp, corner = 20.dp) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                NeumorphicIconTile(icon = Icons.Default.Apps, tint = color, size = 38.dp, iconSize = 18.dp)
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    text = app.appLabel?.takeIf { it.isNotBlank() }
-                        ?: app.packageName.substringAfterLast('.'),
-                    color = Nm.onSurface,
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            Spacer(Modifier.height(10.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MiniAction(
-                    label = stringResource(R.string.device_owner_suspend_action),
-                    icon = Icons.Default.Lock,
-                    tint = ownerStateColor(suspensionState),
-                    onClick = { if (suspensionState == CapabilityState.AVAILABLE) onSuspend() else onBlocked(DeviceOwnerCapability.APP_SUSPENSION) },
-                    modifier = Modifier.weight(1f)
-                )
-                MiniAction(
-                    label = stringResource(R.string.device_owner_uninstall_action),
-                    icon = Icons.Default.Shield,
-                    tint = ownerStateColor(uninstallState),
-                    onClick = { if (uninstallState == CapabilityState.AVAILABLE) onProtectUninstall() else onBlocked(DeviceOwnerCapability.UNINSTALL_PROTECTION) },
-                    modifier = Modifier.weight(1f)
-                )
-                MiniAction(
-                    label = stringResource(R.string.device_owner_limit_action),
-                    icon = Icons.Default.Timer,
-                    tint = ownerStateColor(limitState),
-                    onClick = { if (limitState == CapabilityState.AVAILABLE) onSetLimit() else onBlocked(DeviceOwnerCapability.APP_USAGE_LIMITS) },
-                    modifier = Modifier.weight(1f)
-                )
-            }
+    NeumorphicCard(modifier = Modifier.fillMaxWidth(), padding = 16.dp, corner = 20.dp) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            NeumorphicIconTile(icon = Icons.Default.Apps, tint = color, size = 38.dp, iconSize = 18.dp)
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = app.appLabel?.takeIf { it.isNotBlank() }
+                    ?: app.packageName.substringAfterLast('.'),
+                color = Nm.onSurface,
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Spacer(Modifier.height(10.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MiniAction(
+                label = stringResource(R.string.device_owner_suspend_action),
+                icon = Icons.Default.Lock,
+                tint = ownerStateColor(suspensionState),
+                onClick = { if (suspensionState == CapabilityState.AVAILABLE) onSuspend() else onBlocked(DeviceOwnerCapability.APP_SUSPENSION) },
+                modifier = Modifier.weight(1f)
+            )
+            MiniAction(
+                label = stringResource(R.string.device_owner_uninstall_action),
+                icon = Icons.Default.Shield,
+                tint = ownerStateColor(uninstallState),
+                onClick = { if (uninstallState == CapabilityState.AVAILABLE) onProtectUninstall() else onBlocked(DeviceOwnerCapability.UNINSTALL_PROTECTION) },
+                modifier = Modifier.weight(1f)
+            )
+            MiniAction(
+                label = stringResource(R.string.device_owner_limit_action),
+                icon = Icons.Default.Timer,
+                tint = ownerStateColor(limitState),
+                onClick = { if (limitState == CapabilityState.AVAILABLE) onSetLimit() else onBlocked(DeviceOwnerCapability.APP_USAGE_LIMITS) },
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }

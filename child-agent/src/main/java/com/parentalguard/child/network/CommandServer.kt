@@ -4,6 +4,7 @@ import com.parentalguard.child.data.RuleRepository
 import com.parentalguard.child.monitor.UsageMonitor
 import com.parentalguard.child.service.MonitorService
 import com.parentalguard.child.policy.DeviceOwnerManager
+import com.parentalguard.child.update.ApkInstaller
 import com.parentalguard.common.model.DeviceStats
 import com.parentalguard.common.network.CommandType
 import com.parentalguard.common.network.Packet
@@ -17,6 +18,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import io.ktor.utils.io.readAvailable
 import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
@@ -133,7 +135,9 @@ class CommandServer(private val context: Context) {
                         usageLimitMs = RuleRepository.usageLimitMs.value,
                         breakDurationMs = RuleRepository.breakDurationMs.value,
                         deviceOwnerCapabilities = DeviceOwnerManager.capabilities(this@CommandServer.context),
-                        blockingScreenStyle = RuleRepository.blockingScreenStyle.value
+                        blockingScreenStyle = RuleRepository.blockingScreenStyle.value,
+                        childAppVersionName = runCatching { com.parentalguard.child.BuildConfig.VERSION_NAME }.getOrNull(),
+                        childAppVersionCode = runCatching { com.parentalguard.child.BuildConfig.VERSION_CODE }.getOrDefault(0)
                     )
                     call.respond(Packet.Response(true, stats = stats))
                 }
@@ -352,6 +356,42 @@ class CommandServer(private val context: Context) {
                     }
                 }
                 
+                // Parent-pushed update: raw APK bytes in the request body.
+                // Device Owner installs silently; otherwise the system shows
+                // the install-confirmation screen on this device.
+                post("/update") {
+                    try {
+                        val dir = java.io.File(this@CommandServer.context.cacheDir, "updates").apply { mkdirs() }
+                        val tmp = java.io.File(dir, "parent-pushed.apk.tmp")
+                        val channel = call.receiveChannel()
+                        tmp.outputStream().use { out ->
+                            val buf = ByteArray(64 * 1024)
+                            while (!channel.isClosedForRead) {
+                                val read = channel.readAvailable(buf, 0, buf.size)
+                                if (read <= 0) break
+                                out.write(buf, 0, read)
+                            }
+                        }
+                        if (tmp.length() < 1_000_000) {
+                            tmp.delete()
+                            call.respond(Packet.Response(false, "APK upload was truncated"))
+                        } else {
+                            val dest = java.io.File(dir, "parent-pushed.apk")
+                            if (dest.exists()) dest.delete()
+                            tmp.renameTo(dest)
+                            when (val result = ApkInstaller.installApk(this@CommandServer.context, dest)) {
+                                is ApkInstaller.Result.Accepted ->
+                                    call.respond(Packet.Response(true, "Update accepted for install"))
+                                is ApkInstaller.Result.Rejected ->
+                                    call.respond(Packet.Response(false, result.reason))
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("CommandServer", "Error installing update", e)
+                        call.respond(Packet.Response(false, e.message))
+                    }
+                }
+
                 get("/ping") {
                     call.respond(Packet.Response(true, "Pong"))
                 }

@@ -235,7 +235,9 @@ fun NeumorphicButton(
     tint: Color = Nm.onSurface,
     iconTint: Color = Nm.primary,
     enabled: Boolean = true,
-    inset: Boolean = false
+    inset: Boolean = false,
+    maxLines: Int = 1,
+    textAlign: TextAlign = TextAlign.Start
 ) {
     val (interactionSource, scale) = rememberNmPress(0.96f)
     val surface = if (inset) Nm.inset else Nm.surface
@@ -262,8 +264,10 @@ fun NeumorphicButton(
                 color = tint,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                maxLines = maxLines,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = textAlign,
+                modifier = Modifier.weight(1f, fill = false)
             )
         }
     }

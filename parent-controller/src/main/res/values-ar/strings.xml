@@ -424,6 +424,8 @@
     <string name="blocking_style_save_failed">ما قدرناش نسجلو شكل شاشة الحجب</string>
     <string name="console_device_owner">متقدم</string>
     <string name="device_owner_controls_title">تحكم Device Owner</string>
+    <string name="device_owner_access_granted">تم منح صلاحية Device Owner</string>
+    <string name="device_owner_access_granted_desc">التحكم الكامل محلول فهاد الجهاز</string>
     <string name="device_owner_status_available">صلاحيات Device Owner مؤكدة</string>
     <string name="device_owner_status_unavailable">التحكم المتقدم غير متاح</string>
     <string name="device_owner_status_unknown">ما توصلناش بحالة الصلاحيات</string>
@@ -500,4 +502,43 @@
     <string name="onboarding_control_title">حامي وموجه</string>
     <string name="onboarding_control_body">دوز على أي جهاز باش تفتح وحدة التحكم ديالو. قفل الشاشة، بلوكي التطبيقات، حدد الحدود اليومية، خد استراحات، وتابع التقرير ديال اليوم.</string>
     <string name="onboarding_control_path">وحدة التحكم</string>
+
+    <!-- ============ Device Owner guide (full Samsung tutorial) ============ -->
+    <string name="device_owner_guide_copy">نسخ</string>
+    <string name="device_owner_guide_copied">تنسخ الأمر — لصقو ف PowerShell / terminal</string>
+    <string name="device_owner_guide_phase_1_title">حفظ، ومن بعد إعادة الضبط</string>
+    <string name="device_owner_guide_phase_1_body">Device Owner خدام غير على جهاز جديد. حفظ التصاور والملفات، ومن بعد الإعدادات ← الإدارة العامة ← إعادة الضبط ← إعادة ضبط المصنع.</string>
+    <string name="device_owner_guide_phase_2_title">أول تشغيل: بلا حسابات</string>
+    <string name="device_owner_guide_phase_2_body">دخل للواي فاي، ولكن ما تزيد حتى حساب Google ولا Samsung. تخطى تسجيل الدخول — الحسابات كيبلوكيو الأمر.</string>
+    <string name="device_owner_guide_phase_3_title">فعل USB debugging</string>
+    <string name="device_owner_guide_phase_3_body">الإعدادات ← حول الجهاز ← معلومات البرنامج ← دق على رقم الإصدار 7 مرات. ومن بعد خيارات المطور ← USB debugging ON. وصل الجهاز بالPC وقبل الطلب.</string>
+    <string name="device_owner_guide_phase_4_title">ثبت تطبيق الولد</string>
+    <string name="device_owner_guide_phase_4_body">من تطبيق الوالد دير “صيفط تطبيق الولد”، ولا من الPC دير: adb install -r kidguard-child.apk. تأكد بـ: adb devices.</string>
+    <string name="device_owner_guide_phase_5_title">دير Kid Guard هو Device Owner</string>
+    <string name="device_owner_guide_phase_5_body">فالPC دير أمر ADB اللي الفوق (زر النسخ). ملي تنجح غادي يقول “Device owner set”. من بعد تقدر ترجع الحسابات.</string>
+    <string name="device_owner_guide_phase_6_title">عطي جميع الأذونات</string>
+    <string name="device_owner_guide_phase_6_body">حل تطبيق الولد: سمح بالوصول للاستخدام، العرض فوق التطبيقات، إمكانية الوصول (Kid Guard Blocker)، والبلوتوث. خلي كود QR باين.</string>
+    <string name="device_owner_guide_phase_7_title">حماية سامسونغ من الإغلاق</string>
+    <string name="device_owner_guide_phase_7_body">التطبيقات ← System Service ← البطارية ← غير مقيدة. البطارية ← حدود الخلفية ← تطبيقات لا تنام ← زيدو. العناية بالجهاز ← التحسين التلقائي OFF.</string>
+    <string name="device_owner_guide_phase_8_title">زاوج من تطبيق الوالد</string>
+    <string name="device_owner_guide_phase_8_body">تطبيق الوالد ← الدائرة ← Pair with QR ← سكانّي التابلت. نفس الواي فاي لأول مرة؛ البلوتوث والسحابة خدامين من بعد.</string>
+    <string name="device_owner_guide_phase_9_title">تأكد، ومن بعد خبي الأيقونة</string>
+    <string name="device_owner_guide_phase_9_body">حل كونسول الولد ← متقدم ← “privileges confirmed”. غير من بعد دير إخفاء الأيقونة فتطبيق الولد. من بعد سيرو من عند الوالد.</string>
+    <string name="device_owner_guide_trouble_title">إلا فشل الأمر</string>
+    <string name="device_owner_guide_trouble_body">“Accounts added” ← مسح جميع حسابات Google/Samsung وعاود. “Already provisioned” ← عاود إعادة الضبط. “No device” ← شوف الكابل و adb devices وقبل طلب USB.</string>
+
+    <!-- ============ Child updates (parent-pushed) ============ -->
+    <string name="child_update_title">تحديثات تطبيق الولد</string>
+    <string name="child_update_desc">شوف إصدارات GitHub وصيفط APK الجديد للأجهزة المزاوجة</string>
+    <string name="child_update_check">قلب على تحديث</string>
+    <string name="child_update_checking">كنقلبو فإصدارات GitHub…</string>
+    <string name="child_update_up_to_date">تطبيق الولد محدث</string>
+    <string name="child_update_available">كاينة نسخة جديدة: %1$s</string>
+    <string name="child_update_download_push">حمّل وصيفط لـ %1$d جهاز</string>
+    <string name="child_update_downloading">كنحمّلو التحديث…</string>
+    <string name="child_update_pushing">كنصيفطو لجهاز الولد… (خليهم على نفس الواي فاي)</string>
+    <string name="child_update_success">تصيفط التحديث — الولد كيثبتو بوحدو (Owner) ولا كيطلب التأكيد</string>
+    <string name="child_update_failed">فشل التحديث: %1$s</string>
+    <string name="child_update_no_devices">زاوج جهاز الولد الأول، ومن بعد صيفط التحديثات</string>
+    <string name="child_update_current">المثبتة: %1$s · الجديدة: %2$s</string>
 </resources>

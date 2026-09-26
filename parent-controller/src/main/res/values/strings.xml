@@ -424,6 +424,8 @@
     <string name="blocking_style_save_failed">Could not save blocked-screen style</string>
     <string name="console_device_owner">Advanced</string>
     <string name="device_owner_controls_title">Device Owner controls</string>
+    <string name="device_owner_access_granted">Device Owner access granted</string>
+    <string name="device_owner_access_granted_desc">Full-power controls are unlocked on this device</string>
     <string name="device_owner_status_available">Device Owner privileges confirmed</string>
     <string name="device_owner_status_unavailable">Advanced controls are unavailable</string>
     <string name="device_owner_status_unknown">Privilege status has not been reported</string>
@@ -500,4 +502,43 @@
     <string name="onboarding_control_title">Guard and guide</string>
     <string name="onboarding_control_body">Tap any device to open its console. Lock the screen, block apps, set daily time limits, take breaks, and follow today\'s report.</string>
     <string name="onboarding_control_path">Device console</string>
+
+    <!-- ============ Device Owner guide (full Samsung tutorial) ============ -->
+    <string name="device_owner_guide_copy">Copy</string>
+    <string name="device_owner_guide_copied">Command copied — paste it in PowerShell / terminal</string>
+    <string name="device_owner_guide_phase_1_title">Back up, then factory-reset</string>
+    <string name="device_owner_guide_phase_1_body">Device Owner only works on a fresh device. Back up photos and files, then Settings → General management → Reset → Factory data reset.</string>
+    <string name="device_owner_guide_phase_2_title">First boot: skip all accounts</string>
+    <string name="device_owner_guide_phase_2_body">Connect Wi-Fi, but do NOT add any Google or Samsung account yet. Skip sign-in — accounts block the owner command.</string>
+    <string name="device_owner_guide_phase_3_title">Enable USB debugging</string>
+    <string name="device_owner_guide_phase_3_body">Settings → About tablet → Software information → tap Build number 7 times. Then Developer options → USB debugging ON. Connect to PC and accept the prompt.</string>
+    <string name="device_owner_guide_phase_4_title">Install the child APK</string>
+    <string name="device_owner_guide_phase_4_body">From this parent app use “Send child app”, or from PC run: adb install -r kidguard-child.apk. Check with: adb devices.</string>
+    <string name="device_owner_guide_phase_5_title">Set Kid Guard as Device Owner</string>
+    <string name="device_owner_guide_phase_5_body">On PC, run the ADB command above (copy button). Success says “Device owner set”. Now accounts can be added back.</string>
+    <string name="device_owner_guide_phase_6_title">Grant every permission</string>
+    <string name="device_owner_guide_phase_6_body">Open the child app: allow Usage Access, Display over other apps, Accessibility (Kid Guard Blocker), and Bluetooth. Keep its QR code on screen.</string>
+    <string name="device_owner_guide_phase_7_title">Samsung keep-alive (do not skip)</string>
+    <string name="device_owner_guide_phase_7_body">Apps → System Service → Battery → Unrestricted. Battery → Background limits → Never sleeping apps → add it. Device care → Auto optimization OFF.</string>
+    <string name="device_owner_guide_phase_8_title">Pair from the parent</string>
+    <string name="device_owner_guide_phase_8_body">Parent app → The Circle → Pair with QR → scan the tablet. Same Wi-Fi for first pairing; Bluetooth and cloud relay work after.</string>
+    <string name="device_owner_guide_phase_9_title">Verify, then hide the icon</string>
+    <string name="device_owner_guide_phase_9_body">Open the child console → Advanced → “privileges confirmed”. Only then use Hide Icon in the child app. Manage it from the parent afterwards.</string>
+    <string name="device_owner_guide_trouble_title">If the command fails</string>
+    <string name="device_owner_guide_trouble_body">“Accounts added” → remove all Google/Samsung accounts and retry. “Already provisioned” → factory-reset again. “No device” → check cable, adb devices, accept the USB prompt.</string>
+
+    <!-- ============ Child updates (parent-pushed) ============ -->
+    <string name="child_update_title">Child app updates</string>
+    <string name="child_update_desc">Check GitHub releases and push the new child APK to paired devices</string>
+    <string name="child_update_check">Check for update</string>
+    <string name="child_update_checking">Checking GitHub releases…</string>
+    <string name="child_update_up_to_date">Child app is up to date</string>
+    <string name="child_update_available">New version available: %1$s</string>
+    <string name="child_update_download_push">Download &amp; push to %1$d device(s)</string>
+    <string name="child_update_downloading">Downloading update…</string>
+    <string name="child_update_pushing">Pushing to child device… (keep both on the same Wi-Fi)</string>
+    <string name="child_update_success">Update pushed — the child installs silently (Owner) or asks to confirm</string>
+    <string name="child_update_failed">Update failed: %1$s</string>
+    <string name="child_update_no_devices">Pair a child device first, then push updates</string>
+    <string name="child_update_current">Installed: %1$s · Latest: %2$s</string>
 </resources>

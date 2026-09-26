@@ -60,6 +60,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.os.LocaleListCompat
 import com.parentalguard.parent.R
 import com.parentalguard.parent.security.PinManager
+import com.parentalguard.parent.update.ChildUpdateSection
+import com.parentalguard.parent.viewmodel.ChildDevice
 import com.parentalguard.parent.ui.aura.auraEnter
 import com.parentalguard.parent.ui.currentAppVersion
 import com.parentalguard.parent.ui.neumorphic.Nm
@@ -75,6 +77,7 @@ import java.util.Locale
 @Composable
 fun ControlScreen(
     modifier: Modifier = Modifier,
+    devices: List<ChildDevice> = emptyList(),
     onLanguageChanged: (String) -> Unit = {},
     onOpenDeviceOwnerGuide: () -> Unit = {},
     onShareChildApk: () -> Unit = {},
@@ -152,9 +155,24 @@ fun ControlScreen(
                 }
             }
 
+            // -- Child updates (GitHub release -> push to paired devices) -----
+            item {
+                Column(Modifier.auraEnter(2)) {
+                    Text(
+                        text = stringResource(R.string.child_update_title).uppercase(),
+                        color = Nm.onSurfaceMuted,
+                        style = MaterialTheme.typography.labelSmall,
+                        letterSpacing = 1.4.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 6.dp, bottom = 8.dp)
+                    )
+                    ChildUpdateSection(devices = devices)
+                }
+            }
+
             // -- Appearance -----------------------------------------------------
             item {
-                ControlGroup(title = stringResource(R.string.appearance_title), index = 2) {
+                ControlGroup(title = stringResource(R.string.appearance_title), index = 3) {
                     ControlRow(
                         icon = Icons.Outlined.DarkMode,
                         title = stringResource(R.string.dark_mode_title),
@@ -181,7 +199,7 @@ fun ControlScreen(
 
             // -- About ----------------------------------------------------------
             item {
-                ControlGroup(title = stringResource(R.string.about_section_title), index = 3) {
+                ControlGroup(title = stringResource(R.string.about_section_title), index = 4) {
                     ControlRow(
                         icon = Icons.Outlined.Info,
                         title = stringResource(R.string.about_title),
@@ -200,7 +218,7 @@ fun ControlScreen(
 
             item {
                 Column(
-                    modifier = Modifier.fillMaxWidth().auraEnter(4).padding(top = 10.dp),
+                    modifier = Modifier.fillMaxWidth().auraEnter(5).padding(top = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     NeumorphicIconTile(

@@ -322,6 +322,7 @@ fun ParentalControlApp(
 
                     composable(Screen.Control.route) {
                         ControlScreen(
+                            devices = devices,
                             onLanguageChanged = { languageCode ->
                                 discoveryViewModel.syncLanguage(languageCode)
                             },

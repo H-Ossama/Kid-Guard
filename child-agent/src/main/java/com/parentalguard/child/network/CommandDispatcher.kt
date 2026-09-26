@@ -48,7 +48,9 @@ object CommandDispatcher {
                             usageLimitMs = RuleRepository.usageLimitMs.value,
                              breakDurationMs = RuleRepository.breakDurationMs.value,
                              deviceOwnerCapabilities = DeviceOwnerManager.capabilities(context),
-                             blockingScreenStyle = RuleRepository.blockingScreenStyle.value
+                             blockingScreenStyle = RuleRepository.blockingScreenStyle.value,
+                             childAppVersionName = runCatching { com.parentalguard.child.BuildConfig.VERSION_NAME }.getOrNull(),
+                             childAppVersionCode = runCatching { com.parentalguard.child.BuildConfig.VERSION_CODE }.getOrDefault(0)
                           ))
                      }
 
