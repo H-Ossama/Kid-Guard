@@ -19,7 +19,7 @@ import kotlinx.serialization.json.Json
  * otherwise Android shows the normal install-confirmation prompt.
  */
 object GitHubReleaseChecker {
-    const val RELEASES_URL = "https://api.github.com/repos/H-Ossama/Family-Guard/releases/latest"
+    const val RELEASES_URL = "https://api.github.com/repos/H-Ossama/Kid-Guard/releases/latest"
 
     private val json = Json { ignoreUnknownKeys = true }
 
