@@ -3,5 +3,6 @@
     <uses-policies>
         <force-lock />
         <watch-login />
+        <reset-password />
     </uses-policies>
 </device-admin>

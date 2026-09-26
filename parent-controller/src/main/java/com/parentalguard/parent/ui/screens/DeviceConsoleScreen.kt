@@ -765,6 +765,7 @@ private fun DeviceOwnerSegment(
 ) {
     var blockedCapability by remember { mutableStateOf<DeviceOwnerCapability?>(null) }
     var showDeviceLimitDialog by remember { mutableStateOf(false) }
+    var showResetScreenLockDialog by remember { mutableStateOf(false) }
     var appLimitFor by remember { mutableStateOf<String?>(null) }
 
     if (showDeviceLimitDialog) {
@@ -826,6 +827,38 @@ private fun DeviceOwnerSegment(
         )
     }
 
+    if (showResetScreenLockDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetScreenLockDialog = false },
+            containerColor = Nm.surface,
+            title = {
+                Text(stringResource(R.string.device_owner_screen_lock_confirm_title), color = Nm.onSurface)
+            },
+            text = {
+                Text(
+                    text = stringResource(
+                        R.string.device_owner_screen_lock_confirm_body,
+                        device.customName.ifBlank { device.name }
+                    ),
+                    color = Nm.onSurfaceMuted
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showResetScreenLockDialog = false
+                    viewModel.clearChildScreenLock(device)
+                }) {
+                    Text(stringResource(R.string.device_owner_screen_lock_action), color = Nm.danger)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetScreenLockDialog = false }) {
+                    Text(stringResource(R.string.cancel), color = Nm.primary)
+                }
+            }
+        )
+    }
+
     val restrictionEntries = listOf(
         "DISALLOW_INSTALL_APPS" to stringResource(R.string.device_owner_restrict_install),
         "DISALLOW_MODIFY_ACCOUNTS" to stringResource(R.string.device_owner_restrict_accounts),
@@ -867,6 +900,17 @@ private fun DeviceOwnerSegment(
                 state = capabilities.stateFor(DeviceOwnerCapability.WIFI_TOGGLE),
                 onAction = { enabled -> viewModel.setWifiEnabled(device, enabled) },
                 onBlocked = { blockedCapability = DeviceOwnerCapability.WIFI_TOGGLE }
+            )
+        }
+        item {
+            OwnerActionCard(
+                title = stringResource(R.string.device_owner_screen_lock_title),
+                description = stringResource(R.string.device_owner_screen_lock_desc),
+                actionLabel = stringResource(R.string.device_owner_screen_lock_action),
+                icon = Icons.Default.Key,
+                state = capabilities.stateFor(DeviceOwnerCapability.DEVICE_LOCK),
+                onAction = { showResetScreenLockDialog = true },
+                onBlocked = { blockedCapability = DeviceOwnerCapability.DEVICE_LOCK }
             )
         }
         item {

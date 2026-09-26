@@ -127,6 +127,73 @@ object DeviceOwnerManager {
         }
     }
 
+    /**
+     * Escrows a password-reset token with the system so the parent can later
+     * clear a forgotten system screen lock (PIN/pattern/password).
+     * The token must be escrowed BEFORE it is needed — call on every service
+     * start (idempotent). The raw token is kept in private app prefs; only
+     * this Device Owner app can use it via [clearScreenLock].
+     */
+    fun escrowResetPasswordToken(context: Context): Boolean {
+        val gate = requireOwner(context) ?: return false
+        return try {
+            val admin = ComponentName(context, AdminReceiver::class.java)
+            if (gate.isResetPasswordTokenActive(admin)) return true
+            val token = ByteArray(32).also { java.security.SecureRandom().nextBytes(it) }
+            context.getSharedPreferences("owner_prefs", Context.MODE_PRIVATE)
+                .edit()
+                .putString(
+                    "reset_pw_token",
+                    android.util.Base64.encodeToString(token, android.util.Base64.NO_WRAP)
+                )
+                .apply()
+            gate.setResetPasswordToken(admin, token)
+            val active = gate.isResetPasswordTokenActive(admin)
+            android.util.Log.i("DeviceOwner", "Reset-password token escrowed, active=$active")
+            active
+        } catch (e: SecurityException) {
+            android.util.Log.w("DeviceOwner", "Token escrow rejected", e)
+            false
+        } catch (e: IllegalStateException) {
+            android.util.Log.w("DeviceOwner", "Token escrow not allowed", e)
+            false
+        }
+    }
+
+    fun isResetPasswordTokenActive(context: Context): Boolean {
+        val gate = requireOwner(context) ?: return false
+        return try {
+            gate.isResetPasswordTokenActive(ComponentName(context, AdminReceiver::class.java))
+        } catch (e: SecurityException) {
+            false
+        }
+    }
+
+    /**
+     * Clears the system screen lock (PIN/pattern/password) using the escrowed
+     * token. Only possible when [escrowResetPasswordToken] ran first.
+     */
+    fun clearScreenLock(context: Context): PolicyResult {
+        val gate = requireOwner(context) ?: return gateResult()
+        return try {
+            val admin = ComponentName(context, AdminReceiver::class.java)
+            if (!gate.isResetPasswordTokenActive(admin)) {
+                return PolicyResult(false, "Reset token not escrowed yet — restart the child service and retry")
+            }
+            val encoded = context.getSharedPreferences("owner_prefs", Context.MODE_PRIVATE)
+                .getString("reset_pw_token", null)
+                ?: return PolicyResult(false, "Reset token missing on device")
+            val token = android.util.Base64.decode(encoded, android.util.Base64.NO_WRAP)
+            val ok = gate.resetPasswordWithToken(admin, null, token, 0)
+            if (ok) PolicyResult(true, "Screen lock cleared")
+            else PolicyResult(false, "System refused to clear the screen lock")
+        } catch (e: SecurityException) {
+            PolicyResult(false, "Device Owner rejected screen-lock reset")
+        } catch (e: IllegalStateException) {
+            PolicyResult(false, e.message ?: "Screen-lock reset not allowed in this state")
+        }
+    }
+
     fun setWifiEnabled(context: Context, enabled: Boolean): PolicyResult {
         val gate = requireOwner(context) ?: return gateResult()
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return PolicyResult(false, "Wi-Fi control is not supported")

@@ -479,6 +479,12 @@
     <string name="device_owner_app_limit_updated">تحدّث حد التطبيق</string>
     <string name="device_owner_wifi_enabled">الواي فاي تشعل</string>
     <string name="device_owner_wifi_disabled">الواي فاي طفا</string>
+    <string name="device_owner_screen_lock_title">قفل شاشة التابلت</string>
+    <string name="device_owner_screen_lock_desc">مسح PIN ولا النقش ولا كلمة السر من تابلت الولد.</string>
+    <string name="device_owner_screen_lock_action">مسح القفل</string>
+    <string name="device_owner_screen_lock_confirm_title">نمسحو قفل شاشة التابلت؟</string>
+    <string name="device_owner_screen_lock_confirm_body">هادشي غادي يحيد PIN / النقش / كلمة السر من %1$s. ديرو غير إلا نساه الولد — أي واحد شاد التابلت غادي يقدر يحلو حتى تدير قفل جديد.</string>
+    <string name="device_owner_screen_lock_cleared">تمسح قفل شاشة التابلت</string>
     <string name="device_owner_command_failed">فشل أمر Device Owner</string>
     <string name="share_child_apk_title">صيفط تطبيق الولد</string>
     <string name="share_child_apk_desc">صيفط APK ديال الولد باستعمال Quick Share أو البلوتوث أو تطبيق نقل آخر.</string>

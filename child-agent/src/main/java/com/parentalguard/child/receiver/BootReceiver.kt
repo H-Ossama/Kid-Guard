@@ -40,6 +40,14 @@ class BootReceiver : BroadcastReceiver() {
 
         RuleRepository.initialize(context)
 
+        // Escrow the screen-lock reset token as soon as storage is available.
+        // USER_UNLOCKED is the key trigger: at BOOT_COMPLETED the credential
+        // storage may still be locked, which makes the escrow silently fail.
+        if (action == Intent.ACTION_USER_UNLOCKED) {
+            runCatching { DeviceOwnerManager.escrowResetPasswordToken(context) }
+                .onFailure { Log.w("BootReceiver", "Token escrow deferred", it) }
+        }
+
         // Persisted rescue: retries the service start + re-applies the lock.
         runCatching { BootRescueJobService.schedule(context) }
             .onFailure { Log.w("BootReceiver", "Cannot schedule rescue job", it) }

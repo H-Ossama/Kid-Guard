@@ -123,6 +123,10 @@ class MonitorService : Service() {
         // Re-sync the VPN on every service start: a boot-time sync may have
         // been deferred while the app was in the background.
         com.parentalguard.child.data.RuleRepository.syncVpn(this)
+        // Escrow the screen-lock reset token (idempotent) so the parent can
+        // clear a forgotten system PIN/pattern later. Must happen before it
+        // is ever needed — hence on every service start, including boot.
+        runCatching { DeviceOwnerManager.escrowResetPasswordToken(this) }
         // Keep the persisted rescue/watchdog armed so protection survives
         // reboots and process kills even if the boot receiver was skipped.
         runCatching { BootRescueJobService.schedule(this) }

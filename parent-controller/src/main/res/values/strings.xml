@@ -479,6 +479,12 @@
     <string name="device_owner_app_limit_updated">App usage limit updated</string>
     <string name="device_owner_wifi_enabled">Wi-Fi enabled</string>
     <string name="device_owner_wifi_disabled">Wi-Fi disabled</string>
+    <string name="device_owner_screen_lock_title">Tablet screen lock</string>
+    <string name="device_owner_screen_lock_desc">Clear the system PIN, pattern, or password on the child tablet.</string>
+    <string name="device_owner_screen_lock_action">Clear lock</string>
+    <string name="device_owner_screen_lock_confirm_title">Clear tablet screen lock?</string>
+    <string name="device_owner_screen_lock_confirm_body">This removes the PIN / pattern / password from %1$s. Only do this if your child forgot it — anyone holding the tablet will be able to open it until a new lock is set.</string>
+    <string name="device_owner_screen_lock_cleared">Tablet screen lock cleared</string>
     <string name="device_owner_command_failed">Device Owner command failed</string>
     <string name="share_child_apk_title">Send child app</string>
     <string name="share_child_apk_desc">Share the child APK with the child device using Quick Share, Bluetooth, or another transfer app.</string>

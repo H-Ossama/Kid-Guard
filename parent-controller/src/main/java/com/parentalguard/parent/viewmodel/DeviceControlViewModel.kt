@@ -770,6 +770,17 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
         )
     }
 
+    fun clearChildScreenLock(device: ChildDevice) {
+        sendDeviceOwnerCommand(
+            device = device,
+            capability = DeviceOwnerCapability.DEVICE_LOCK,
+            command = Packet.Command(
+                commandType = CommandType.DEVICE_OWNER_RESET_SCREEN_LOCK
+            ),
+            successMessage = text(R.string.device_owner_screen_lock_cleared)
+        )
+    }
+
     private fun sendDeviceOwnerCommand(
         device: ChildDevice,
         capability: DeviceOwnerCapability,

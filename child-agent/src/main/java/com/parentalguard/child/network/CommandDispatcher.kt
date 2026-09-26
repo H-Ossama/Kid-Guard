@@ -291,6 +291,11 @@ object CommandDispatcher {
                         }
                     }
 
+                    CommandType.DEVICE_OWNER_RESET_SCREEN_LOCK -> {
+                        val result = DeviceOwnerManager.clearScreenLock(context)
+                        Packet.Response(result.success, result.message)
+                    }
+
                     else -> Packet.Response(false, "Command not implemented: ${command.commandType}")
                 }
                 response.copy(requestId = command.requestId)
