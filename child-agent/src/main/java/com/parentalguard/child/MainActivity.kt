@@ -14,6 +14,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.mutableStateOf
 import com.parentalguard.child.ui.OnboardingActivity
 import com.parentalguard.child.ui.screens.MainScreen
+import com.parentalguard.child.ui.screens.PinGateMode
+import com.parentalguard.child.ui.screens.PinGateScreen
 import com.parentalguard.child.ui.theme.ParentalGuardTheme
 import com.parentalguard.child.service.MonitorService
 
@@ -25,6 +27,10 @@ class MainActivity : AppCompatActivity() {
     private val status = mutableStateOf("")
     private val qrBitmap = mutableStateOf<Bitmap?>(null)
     private val deviceName = mutableStateOf("")
+    // Protection PIN gate: settings are hidden until the PIN is set + verified.
+    // The parent can clear a forgotten PIN remotely ("Reset child PIN").
+    private val pinSet = mutableStateOf(false)
+    private val pinUnlocked = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,18 +45,41 @@ class MainActivity : AppCompatActivity() {
         requestBluetoothPermissions()
         
         status.value = getString(R.string.status_initializing)
+        refreshPinState()
 
         setContent {
             ParentalGuardTheme {
-                MainScreen(
-                    connectionString = connectionString.value,
-                    status = status.value,
-                    qrBitmap = qrBitmap.value,
-                    deviceName = deviceName.value,
-                    onRequestUnlock = { requestTemporaryUnlock() },
-                    onHideIcon = { hideLauncherIcon() },
-                    onRenameDevice = { showRenameDialog() }
-                )
+                when {
+                    !pinSet.value -> PinGateScreen(
+                        mode = PinGateMode.SETUP,
+                        onSetupComplete = { pin ->
+                            if (com.parentalguard.child.security.PinManager.setPin(this, pin)) {
+                                Toast.makeText(this, getString(R.string.pin_set_success), Toast.LENGTH_SHORT).show()
+                                refreshPinState()
+                                pinUnlocked.value = true
+                            }
+                        },
+                        onVerify = { false }
+                    )
+                    !pinUnlocked.value -> PinGateScreen(
+                        mode = PinGateMode.VERIFY,
+                        onSetupComplete = {},
+                        onVerify = { pin ->
+                            val ok = com.parentalguard.child.security.PinManager.verifyPin(this, pin)
+                            if (ok) pinUnlocked.value = true
+                            ok
+                        }
+                    )
+                    else -> MainScreen(
+                        connectionString = connectionString.value,
+                        status = status.value,
+                        qrBitmap = qrBitmap.value,
+                        deviceName = deviceName.value,
+                        onRequestUnlock = { requestTemporaryUnlock() },
+                        onHideIcon = { hideLauncherIcon() },
+                        onRenameDevice = { showRenameDialog() }
+                    )
+                }
             }
         }
         
@@ -67,7 +96,15 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Re-read PIN state: a remote parent reset while we were away must
+        // drop back to setup instead of leaving a stale gate behind.
+        refreshPinState()
         requestBluetoothDiscoverable()
+    }
+
+    private fun refreshPinState() {
+        pinSet.value = com.parentalguard.child.security.PinManager.isPinSet(this)
+        if (!pinSet.value) pinUnlocked.value = false
     }
 
     private fun updateConnectionInfo() {

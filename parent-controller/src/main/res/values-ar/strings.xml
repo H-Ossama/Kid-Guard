@@ -354,6 +354,7 @@
     <string name="console_reset_pin">إعادة تعيين رمز الطفل</string>
     <string name="console_reset_pin_title">تعاود تعيين الرمز؟</string>
     <string name="console_reset_pin_desc">الرمز السري ديال %s غادي يتمسح. دير هادشي غير إلا كان ولدك نساه.</string>
+    <string name="console_reset_pin_desc_none">ما كاين حتى رمز سري فـ %s — ما كاين والو باش تمسح.</string>
     <string name="console_remove_device">حيد من الدائرة</string>
     <string name="console_top_apps">أكثر التطبيقات استعمالاً</string>
     <string name="apps_allowance">مهلة</string>

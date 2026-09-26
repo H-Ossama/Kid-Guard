@@ -87,6 +87,9 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
     val deviceOwnerCapabilities: StateFlow<Map<String, DeviceOwnerCapabilities>> =
         _deviceOwnerCapabilities.asStateFlow()
 
+    private val _childPinSet = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val childPinSet: StateFlow<Map<String, Boolean>> = _childPinSet.asStateFlow()
+
     private val statsGenerations = mutableMapOf<String, Long>()
     
     fun refresh(device: ChildDevice) {
@@ -141,6 +144,8 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
                     (device.deviceId to (response.stats?.deviceOwnerCapabilities ?: DeviceOwnerCapabilities()))
                 _blockingScreenStyles.value = _blockingScreenStyles.value +
                     (device.deviceId to (response.stats?.blockingScreenStyle ?: BlockingScreenStyle.CURRENT))
+                _childPinSet.value = _childPinSet.value +
+                    (device.deviceId to (response.stats?.childPinSet ?: false))
                 
                 // Process icons if included
                 if (includeIcons) {
@@ -446,6 +451,7 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
             val response = client.resetPin(device.ip.hostAddress ?: "", device.port, device.deviceId)
             if (response != null && response.success) {
                 _statusMessage.value = "PIN reset successfully"
+                fetchStats(device)
             } else {
                 _statusMessage.value = "Failed to reset PIN"
             }

@@ -354,6 +354,7 @@
     <string name="console_reset_pin">Reset child PIN</string>
     <string name="console_reset_pin_title">Reset child PIN?</string>
     <string name="console_reset_pin_desc">The PIN on %s will be cleared. Do this only if your child forgot it.</string>
+    <string name="console_reset_pin_desc_none">No PIN is set on %s — nothing to clear.</string>
     <string name="console_remove_device">Remove from circle</string>
     <string name="console_top_apps">Top apps today</string>
     <string name="apps_allowance">Allowance</string>

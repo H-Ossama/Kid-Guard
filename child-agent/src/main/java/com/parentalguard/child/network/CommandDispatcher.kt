@@ -50,7 +50,8 @@ object CommandDispatcher {
                              deviceOwnerCapabilities = DeviceOwnerManager.capabilities(context),
                              blockingScreenStyle = RuleRepository.blockingScreenStyle.value,
                              childAppVersionName = runCatching { com.parentalguard.child.BuildConfig.VERSION_NAME }.getOrNull(),
-                             childAppVersionCode = runCatching { com.parentalguard.child.BuildConfig.VERSION_CODE }.getOrDefault(0)
+                             childAppVersionCode = runCatching { com.parentalguard.child.BuildConfig.VERSION_CODE }.getOrDefault(0),
+                             childPinSet = com.parentalguard.child.security.PinManager.isPinSet(context)
                           ))
                      }
 

@@ -186,6 +186,8 @@ fun DeviceConsoleScreen(
     val blockingScreenStyles by viewModel.blockingScreenStyles.collectAsState()
     val blockingScreenStyleSaves by viewModel.blockingScreenStyleSaves.collectAsState()
     val deviceOwnerCapabilities by viewModel.deviceOwnerCapabilities.collectAsState()
+    val childPinSetByDevice by viewModel.childPinSet.collectAsState()
+    val isChildPinSet = childPinSetByDevice[device.deviceId] ?: false
     val usageLogsByDevice by viewModel.usageLogsByDevice.collectAsState()
     val isRefreshingApps by viewModel.isRefreshingApps.collectAsState()
     val selectedCapabilities = deviceOwnerCapabilities[device.deviceId] ?: DeviceOwnerCapabilities()
@@ -232,7 +234,11 @@ fun DeviceConsoleScreen(
     if (showResetPinDialog) {
         ConsoleConfirmDialog(
             title = stringResource(R.string.console_reset_pin_title),
-            body = stringResource(R.string.console_reset_pin_desc, device.customName.ifBlank { device.name }),
+            body = if (isChildPinSet) {
+                stringResource(R.string.console_reset_pin_desc, device.customName.ifBlank { device.name })
+            } else {
+                stringResource(R.string.console_reset_pin_desc_none, device.customName.ifBlank { device.name })
+            },
             confirmLabel = stringResource(R.string.action_set),
             onConfirm = { viewModel.resetPin(device); showResetPinDialog = false },
             onDismiss = { showResetPinDialog = false }

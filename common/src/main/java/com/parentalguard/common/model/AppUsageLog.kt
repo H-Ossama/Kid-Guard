@@ -75,7 +75,8 @@ data class DeviceStats(
     val deviceOwnerCapabilities: DeviceOwnerCapabilities = DeviceOwnerCapabilities(),
     val blockingScreenStyle: BlockingScreenStyle? = null,
     val childAppVersionName: String? = null, // Child APK versionName (for parent-pushed updates)
-    val childAppVersionCode: Int = 0 // Child APK versionCode (for parent-pushed updates)
+    val childAppVersionCode: Int = 0, // Child APK versionCode (for parent-pushed updates)
+    val childPinSet: Boolean = false // Whether the child protection PIN is set
 )
 
 @Serializable
