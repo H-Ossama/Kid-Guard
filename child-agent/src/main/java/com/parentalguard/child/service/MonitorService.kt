@@ -123,6 +123,12 @@ class MonitorService : Service() {
         // Re-sync the VPN on every service start: a boot-time sync may have
         // been deferred while the app was in the background.
         com.parentalguard.child.data.RuleRepository.syncVpn(this)
+        // Refresh declared admin policies (picks up policies added by updates)
+        // BEFORE escrowing: the escrow is rejected while `reset-password`
+        // is not part of the active policy set.
+        // NOTE: setActiveAdmin() was removed from the API-34 SDK stubs, so a
+        // policy refresh is not possible here — policies are frozen at
+        // provisioning time (see device_admin_policies.xml).
         // Escrow the screen-lock reset token (idempotent) so the parent can
         // clear a forgotten system PIN/pattern later. Must happen before it
         // is ever needed — hence on every service start, including boot.

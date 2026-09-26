@@ -147,15 +147,12 @@ object DeviceOwnerManager {
                     android.util.Base64.encodeToString(token, android.util.Base64.NO_WRAP)
                 )
                 .apply()
-            gate.setResetPasswordToken(admin, token)
+            val setResult = gate.setResetPasswordToken(admin, token)
             val active = gate.isResetPasswordTokenActive(admin)
-            android.util.Log.i("DeviceOwner", "Reset-password token escrowed, active=$active")
+            android.util.Log.i("DeviceOwner", "Token escrow set=$setResult active=$active")
             active
-        } catch (e: SecurityException) {
-            android.util.Log.w("DeviceOwner", "Token escrow rejected", e)
-            false
-        } catch (e: IllegalStateException) {
-            android.util.Log.w("DeviceOwner", "Token escrow not allowed", e)
+        } catch (t: Throwable) {
+            android.util.Log.w("DeviceOwner", "Token escrow failed: ${t.javaClass.simpleName}: ${t.message}")
             false
         }
     }
