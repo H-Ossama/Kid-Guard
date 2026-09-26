@@ -36,28 +36,42 @@ class InternetBlockerService : VpnService() {
         const val CHANNEL_ID = "internet_blocker_channel"
 
         fun start(context: Context) {
-            val intent = Intent(context, InternetBlockerService::class.java).apply {
-                action = ACTION_START
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
+            try {
+                val intent = Intent(context, InternetBlockerService::class.java).apply {
+                    action = ACTION_START
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else {
+                    context.startService(intent)
+                }
+            } catch (e: Exception) {
+                // Background start refused (e.g. right after boot): the VPN
+                // re-syncs on the next foreground start via syncVpn().
+                android.util.Log.w("InternetBlocker", "VPN start deferred (background)", e)
             }
         }
 
         fun stop(context: Context) {
-            val intent = Intent(context, InternetBlockerService::class.java).apply {
-                action = ACTION_STOP
+            try {
+                val intent = Intent(context, InternetBlockerService::class.java).apply {
+                    action = ACTION_STOP
+                }
+                context.startService(intent)
+            } catch (e: Exception) {
+                android.util.Log.w("InternetBlocker", "VPN stop deferred (background)", e)
             }
-            context.startService(intent)
         }
 
         fun update(context: Context) {
-            val intent = Intent(context, InternetBlockerService::class.java).apply {
-                action = ACTION_UPDATE
+            try {
+                val intent = Intent(context, InternetBlockerService::class.java).apply {
+                    action = ACTION_UPDATE
+                }
+                context.startService(intent)
+            } catch (e: Exception) {
+                android.util.Log.w("InternetBlocker", "VPN update deferred (background)", e)
             }
-            context.startService(intent)
         }
     }
 

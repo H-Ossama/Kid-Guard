@@ -120,6 +120,9 @@ class MonitorService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         com.parentalguard.child.data.RuleRepository.initialize(this)
+        // Re-sync the VPN on every service start: a boot-time sync may have
+        // been deferred while the app was in the background.
+        com.parentalguard.child.data.RuleRepository.syncVpn(this)
         // Keep the persisted rescue/watchdog armed so protection survives
         // reboots and process kills even if the boot receiver was skipped.
         runCatching { BootRescueJobService.schedule(this) }

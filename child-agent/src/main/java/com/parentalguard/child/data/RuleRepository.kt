@@ -17,7 +17,18 @@ object RuleRepository {
         if (persistentStateManager != null) return
         persistentStateManager = PersistentStateManager(context)
         loadPersistedState()
-        // Always ensure VPN is in sync on startup
+        // Always ensure VPN is in sync on startup (no-ops safely in background —
+        // InternetBlockerService defers the start instead of crashing).
+        syncVpn(context)
+    }
+
+    /**
+     * Re-applies the VPN internet-blocking state from the current rules.
+     * Safe to call from background contexts (boot, job, service restarts):
+     * the service start is deferred — never throws — when the system refuses
+     * background starts, and runs on the next foreground start instead.
+     */
+    fun syncVpn(context: Context) {
         notifyVpn(context)
     }
 

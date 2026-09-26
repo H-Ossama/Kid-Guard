@@ -195,8 +195,16 @@ class CommandServer(private val context: Context) {
                         } else if (packet.commandType == CommandType.UPDATE_RULES && packet.ruleSet != null) {
                             RuleRepository.updateRules(packet.ruleSet!!.rules)
                             RuleRepository.updateCategoryLimits(packet.ruleSet!!.categoryLimits)
-                            RuleRepository.setTemporaryUnlock(packet.ruleSet!!.temporaryUnlockUntil)
-                            RuleRepository.setGlobalLockUntil(packet.ruleSet!!.globalLockUntil)
+                            // Only explicit future timestamps touch lock state. A plain
+                            // rules/break sync carries null (or 0 from older parents)
+                            // and must never release an active lock or wipe an
+                            // approved temporary unlock.
+                            packet.ruleSet!!.temporaryUnlockUntil?.takeIf { it > 0 }?.let {
+                                RuleRepository.setTemporaryUnlock(it)
+                            }
+                            packet.ruleSet!!.globalLockUntil?.takeIf { it > 0 }?.let {
+                                RuleRepository.setGlobalLockUntil(it)
+                            }
                             RuleRepository.setBreakRules(packet.ruleSet!!.usageLimitMs, packet.ruleSet!!.breakDurationMs)
                             Log.i("CommandServer", "Rules updated: ${packet.ruleSet!!.rules.size} rules, Break: ${packet.ruleSet!!.usageLimitMs}/${packet.ruleSet!!.breakDurationMs}")
                             call.respond(Packet.Response(true, "Rules updated", requestId = packet.requestId))

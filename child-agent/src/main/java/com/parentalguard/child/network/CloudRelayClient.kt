@@ -81,11 +81,12 @@ class CloudRelayClient(private val context: Context) {
     }
 
     private suspend fun connect() {
-        // 1. Get Token
+        // 1. Get Token (include the known parent ID so the relay can map us)
         // This will throw if it fails, which is what we want for the retry logic in start()
+        val knownParentId = parentId
         val response = client.post(CloudConfig.BASE_URL + CloudConfig.ENDPOINT_REGISTER) {
             contentType(ContentType.Application.Json)
-            setBody(RegisterRequest(deviceId, "child"))
+            setBody(RegisterRequest(deviceId, "child", knownParentId))
         }.body<RegisterResponse>()
 
         val token = response.token
@@ -145,9 +146,17 @@ class CloudRelayClient(private val context: Context) {
     }
 
     suspend fun sendEvent(event: Packet.Event) {
+        val target = parentId
+        if (target == null) {
+            // The parent never synced its relay ID (pairing-time sync missed).
+            // Without a target the relay cannot route this — it is dropped.
+            // The parent re-syncs its ID on every successful refresh, which heals this.
+            Log.w("CloudRelayClient", "Dropping ${event.eventType}: unknown relay parent ID")
+            return
+        }
         val payload = json.encodeToString<Packet>(event)
         val message = RelayMessage(
-            targetDeviceId = parentId,
+            targetDeviceId = target,
             type = "EVENT",
             payload = payload
         )

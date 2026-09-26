@@ -214,7 +214,7 @@ class DiscoveryViewModel(application: Application) : AndroidViewModel(applicatio
                 refreshDevices()                // Sync Relay Parent ID immediately while we have local connection
                 viewModelScope.launch {
                     try {
-                        deviceClient.syncRelayParentId(ip, port)
+                        deviceClient.syncRelayParentId(ip, port, newDevice.deviceId)
                         Log.i("DiscoveryViewModel", "Synced Relay Parent ID to $ip")
                     } catch (e: Exception) {
                         Log.e("DiscoveryViewModel", "Failed to sync relay ID", e)
@@ -503,7 +503,19 @@ class DiscoveryViewModel(application: Application) : AndroidViewModel(applicatio
             if (responseResult.response != null && responseResult.response.success) {
                 val stats = responseResult.response.stats
                 val screenTime = stats?.usageLogs?.sumOf { it.totalTimeInForeground } ?: 0L
-                
+
+                // The child drops its cloud events when it doesn't know our relay
+                // ID (pairing-time sync may have been missed). Re-sync on every
+                // successful contact — idempotent and cheap — so unlock/extension
+                // requests keep flowing even after reinstalls or missed pairings.
+                viewModelScope.launch(Dispatchers.IO) {
+                    runCatching {
+                        deviceClient.syncRelayParentId(ip, device.port, device.deviceId)
+                    }.onFailure {
+                        Log.w("DiscoveryViewModel", "Relay ID re-sync failed for ${device.deviceId}")
+                    }
+                }
+
                 DeviceStatusSummary(
                     isOnline = true,
                     isLocked = stats?.isLocked ?: false,

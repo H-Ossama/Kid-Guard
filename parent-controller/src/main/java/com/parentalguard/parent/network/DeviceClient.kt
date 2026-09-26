@@ -240,10 +240,11 @@ class DeviceClient(context: Context? = null) {
         return executeCommand(ip, port, deviceId, "/rules", command).response
     }
     
-    suspend fun syncRelayParentId(ip: String, port: Int): Packet.Response? {
+    suspend fun syncRelayParentId(ip: String, port: Int, deviceId: String? = null): Packet.Response? {
         val parentId = cloudRelay?.parentId ?: return null
         val command = Packet.Command(CommandType.SET_RELAY_PARENT_ID, relayParentId = parentId)
-        return executeCommand(ip, port, null, "/device-name", command).response
+        // deviceId enables the cloud-relay tier when the LAN address is stale.
+        return executeCommand(ip, port, deviceId, "/device-name", command).response
     }
     
     suspend fun getDailyReport(ip: String, port: Int, deviceId: String? = null): Packet.Response? {

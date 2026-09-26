@@ -44,8 +44,11 @@ data class CategoryLimit(
 data class RuleSet(
     val rules: List<BlockingRule>,
     val categoryLimits: List<CategoryLimit> = emptyList(),
-    val globalLockUntil: Long = 0, // Device-wide lock timestamp
-    val temporaryUnlockUntil: Long = 0, // Temporary unlock timestamp
+    // Null = "leave the current value alone". A plain rules/category/break sync
+    // must never wipe an active lock or an approved temporary unlock, so the
+    // child only applies these when they carry an explicit future timestamp.
+    val globalLockUntil: Long? = null, // Device-wide lock timestamp
+    val temporaryUnlockUntil: Long? = null, // Temporary unlock timestamp
     val usageLimitMs: Long = 0, // Threshold for total device usage before break
     val breakDurationMs: Long = 0, // Duration of the forced break
     val breakWarningMs: Long = 0, // Minutes before break to show warning (0 = disabled)

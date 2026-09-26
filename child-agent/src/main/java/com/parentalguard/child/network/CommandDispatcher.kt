@@ -75,8 +75,15 @@ object CommandDispatcher {
                         if (command.ruleSet != null) {
                             RuleRepository.updateRules(command.ruleSet!!.rules)
                             RuleRepository.updateCategoryLimits(command.ruleSet!!.categoryLimits)
-                            RuleRepository.setTemporaryUnlock(command.ruleSet!!.temporaryUnlockUntil)
-                            RuleRepository.setGlobalLockUntil(command.ruleSet!!.globalLockUntil)
+                            // Same guard as the HTTP route: null/0 lock timers in a
+                            // plain sync must not release an active lock or wipe an
+                            // approved temporary unlock.
+                            command.ruleSet!!.temporaryUnlockUntil?.takeIf { it > 0 }?.let {
+                                RuleRepository.setTemporaryUnlock(it)
+                            }
+                            command.ruleSet!!.globalLockUntil?.takeIf { it > 0 }?.let {
+                                RuleRepository.setGlobalLockUntil(it)
+                            }
                             RuleRepository.setBreakRules(
                                 command.ruleSet!!.usageLimitMs,
                                 command.ruleSet!!.breakDurationMs,
