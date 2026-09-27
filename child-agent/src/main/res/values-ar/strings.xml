@@ -149,5 +149,6 @@
     <string name="internet_blocker_channel">حالة حجب الإنترنت</string>
     <string name="internet_blocker_title">وكيل الرقابة الأبوية</string>
     <string name="internet_control_active">التحكم بالإنترنت نشط</string>
-    <string name="pin_remove_btn">حيد PIN</string><string name="pin_remove_title">نحيد رمز الحماية؟</string><string name="pin_remove_message">أي واحد حل هاد الإعدادات ما غاديش يتسول على PIN.</string><string name="pin_removed">تحيد رمز الحماية</string>
+    <string name="pin_remove_btn">حيد PIN</string><string name="pin_remove_title">نحيد رمز الحماية؟</string><string name="pin_remove_message">أي واحد حل هاد الإعدادات ما غاديش يتسول على PIN.</string>    <string name="pin_removed">تحيد رمز الحماية</string>
+    <string name="lock_screen_reactivate_desc">صيفط طلب جديد</string><string name="lock_screen_reactivated">تقدر تصيفط طلب جديد دابا</string>
 </resources>

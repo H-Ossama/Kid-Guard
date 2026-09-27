@@ -8,10 +8,12 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
@@ -22,6 +24,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,6 +54,25 @@ fun LockScreen(
         ) {
             Spacer(modifier = Modifier.weight(1f))
 
+            // Cooldown state is hoisted so the reactivate badge next to the
+            // shield can read it too.
+            val lastRequestTime by RuleRepository.lastUnlockRequestTime.collectAsState()
+            val cooldownMs = 15 * 60 * 1000L
+            var cooldownRemaining by remember(lastRequestTime) {
+                mutableLongStateOf((lastRequestTime + cooldownMs - System.currentTimeMillis()).coerceAtLeast(0))
+            }
+
+            LaunchedEffect(lastRequestTime) {
+                while (cooldownRemaining > 0) {
+                    delay(1000)
+                    cooldownRemaining = (lastRequestTime + cooldownMs - System.currentTimeMillis()).coerceAtLeast(0)
+                }
+            }
+
+            val isCooldownActive = cooldownRemaining > 0
+            val context = LocalContext.current
+            val reactivatedMsg = stringResource(R.string.lock_screen_reactivated)
+
             // Animated pulsing icon tile
             val infiniteTransition = rememberInfiniteTransition(label = "pulse")
             val pulseScale by infiniteTransition.animateFloat(
@@ -63,6 +85,7 @@ fun LockScreen(
                 label = "scale"
             )
 
+            Box(contentAlignment = Alignment.Center) {
             Box(
                 modifier = Modifier
                     .size(170.dp)
@@ -90,6 +113,27 @@ fun LockScreen(
                     size = 160.dp,
                     iconSize = 64.dp
                 )
+            }
+                // Reactivate badge: while the 15-minute request cooldown runs,
+                // one tap clears it so another request can be sent immediately.
+                if (isCooldownActive) {
+                    NeumorphicIconTile(
+                        icon = Icons.Default.NotificationsActive,
+                        tint = NeumorphicWarning,
+                        size = 48.dp,
+                        iconSize = 22.dp,
+                        contentDescription = stringResource(R.string.lock_screen_reactivate_desc),
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .clickable {
+                                RuleRepository.clearUnlockRequestCooldown()
+                                android.widget.Toast.makeText(
+                                    context, reactivatedMsg,
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -181,23 +225,8 @@ fun LockScreen(
 
             Spacer(modifier = Modifier.weight(1.2f))
 
-            val lastRequestTime by RuleRepository.lastUnlockRequestTime.collectAsState()
             val allowExtensions by RuleRepository.allowExtensions.collectAsState()
             val educationOnly by RuleRepository.educationOnly.collectAsState()
-
-            val cooldownMs = 15 * 60 * 1000L
-            var cooldownRemaining by remember(lastRequestTime) {
-                mutableLongStateOf((lastRequestTime + cooldownMs - System.currentTimeMillis()).coerceAtLeast(0))
-            }
-
-            LaunchedEffect(lastRequestTime) {
-                while (cooldownRemaining > 0) {
-                    delay(1000)
-                    cooldownRemaining = (lastRequestTime + cooldownMs - System.currentTimeMillis()).coerceAtLeast(0)
-                }
-            }
-
-            val isCooldownActive = cooldownRemaining > 0
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -301,6 +330,9 @@ fun QuietFocusLockScreen(
         }
     }
 
+    val context = LocalContext.current
+    val reactivatedMsg = stringResource(R.string.lock_screen_reactivated)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -314,6 +346,7 @@ fun QuietFocusLockScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
+            Box(contentAlignment = Alignment.Center) {
             Box(
                 modifier = Modifier
                     .size(92.dp)
@@ -321,6 +354,25 @@ fun QuietFocusLockScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Timer, null, tint = Color(0xFF62E6D6), modifier = Modifier.size(42.dp))
+            }
+                if (cooldownRemaining > 0) {
+                    NeumorphicIconTile(
+                        icon = Icons.Default.NotificationsActive,
+                        tint = NeumorphicWarning,
+                        size = 44.dp,
+                        iconSize = 20.dp,
+                        contentDescription = stringResource(R.string.lock_screen_reactivate_desc),
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .clickable {
+                                RuleRepository.clearUnlockRequestCooldown()
+                                android.widget.Toast.makeText(
+                                    context, reactivatedMsg,
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                    )
+                }
             }
             Text(
                 text = stringResource(R.string.quiet_focus_title),

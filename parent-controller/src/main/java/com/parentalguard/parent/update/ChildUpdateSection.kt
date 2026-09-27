@@ -38,7 +38,7 @@ private data class DeviceVersion(
 private sealed interface UpdateUiState {
     data object Idle : UpdateUiState
     data object Checking : UpdateUiState
-    data class UpToDate(val latestTag: String) : UpdateUiState
+    data class UpToDate(val info: GitHubReleaseChecker.ChildReleaseInfo) : UpdateUiState
     data class Available(
         val info: GitHubReleaseChecker.ChildReleaseInfo,
         val stats: Map<String, DeviceVersion>
@@ -118,7 +118,7 @@ fun ChildUpdateSection(
             val installed = stats[device.deviceId]?.version
             installed == null || GitHubReleaseChecker.isNewerVersion(info.versionTag, installed)
         }
-        if (!needsUpdate) return UpdateUiState.UpToDate(info.versionTag)
+        if (!needsUpdate) return UpdateUiState.UpToDate(info)
         // Reuse a previous download of this exact version instead of fetching again.
         if (ChildUpdateDownloader.isCacheValid(context, info.versionTag)) {
             return UpdateUiState.Downloaded(info, ChildUpdateDownloader.updateFile(context), stats)
@@ -192,7 +192,7 @@ fun ChildUpdateSection(
                 UpdateUiState.Idle -> null
                 UpdateUiState.Checking -> context.getString(R.string.child_update_checking)
                 is UpdateUiState.UpToDate ->
-                    context.getString(R.string.child_update_up_to_date) + " (${s.latestTag})"
+                    context.getString(R.string.child_update_up_to_date) + " (${s.info.versionTag})"
                 is UpdateUiState.Available ->
                     context.getString(R.string.child_update_available, s.info.versionTag)
                 UpdateUiState.Downloading -> context.getString(R.string.child_update_downloading)
@@ -222,8 +222,7 @@ fun ChildUpdateSection(
 
             when (val s = state) {
                 UpdateUiState.Idle,
-                is UpdateUiState.Error,
-                is UpdateUiState.UpToDate -> {
+                is UpdateUiState.Error -> {
                     NeumorphicButton(
                         text = stringResource(R.string.child_update_check),
                         onClick = {
@@ -232,6 +231,42 @@ fun ChildUpdateSection(
                                 state = checkForUpdate()
                             }
                         },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                is UpdateUiState.UpToDate -> {
+                    // Even when versions match, allow (re)installing the same
+                    // build — e.g. to deliver a fix without a version bump, or
+                    // repair a misbehaving install.
+                    NeumorphicButton(
+                        text = stringResource(R.string.child_update_download),
+                        onClick = {
+                            scope.launch {
+                                state = UpdateUiState.Downloading
+                                val apk = ChildUpdateDownloader.download(
+                                    context, s.info.downloadUrl, s.info.versionTag
+                                )
+                                state = if (apk == null) {
+                                    UpdateUiState.Error("download failed")
+                                } else {
+                                    UpdateUiState.Downloaded(
+                                        s.info, apk, fetchStats()
+                                    )
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    NeumorphicButton(
+                        text = stringResource(R.string.child_update_check),
+                        onClick = {
+                            scope.launch {
+                                state = UpdateUiState.Checking
+                                state = checkForUpdate()
+                            }
+                        },
+                        inset = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }

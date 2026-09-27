@@ -340,6 +340,16 @@ object RuleRepository {
         persistentStateManager?.saveLastUnlockRequestTime(now)
     }
 
+    /**
+     * Clears the 15-minute request cooldown so the child can send another
+     * unlock/extension request immediately (reactivate button on the lock
+     * screen). The parent still approves or denies every single request.
+     */
+    fun clearUnlockRequestCooldown() {
+        _lastUnlockRequestTime.value = 0
+        persistentStateManager?.saveLastUnlockRequestTime(0)
+    }
+
     // For testing/bootstrap
     init {
         // Example rule: Block settings (just for test, danger!) or a game

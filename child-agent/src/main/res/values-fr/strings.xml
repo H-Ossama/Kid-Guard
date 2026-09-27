@@ -120,5 +120,6 @@
     <string name="internet_blocker_channel">État du bloqueur Internet</string>
     <string name="internet_blocker_title">Proxy Kid Guard</string>
     <string name="internet_control_active">Contrôle Internet actif</string>
-    <string name="pin_remove_btn">Supprimer le PIN</string><string name="pin_remove_title">Supprimer le PIN de protection ?</string><string name="pin_remove_message">Toute personne ouvrant ces réglages ne devra plus saisir de PIN.</string><string name="pin_removed">PIN de protection supprimé</string>
+    <string name="pin_remove_btn">Supprimer le PIN</string><string name="pin_remove_title">Supprimer le PIN de protection ?</string><string name="pin_remove_message">Toute personne ouvrant ces réglages ne devra plus saisir de PIN.</string>    <string name="pin_removed">PIN de protection supprimé</string>
+    <string name="lock_screen_reactivate_desc">Envoyer une nouvelle demande</string><string name="lock_screen_reactivated">Vous pouvez envoyer une autre demande</string>
 </resources>
