@@ -133,6 +133,27 @@ class BluetoothClient(private val context: Context?) {
     }
 
     /**
+     * Bonds with a child device (one-time OS-level pairing). After this, the
+     * child stays reachable by MAC even when it is not discoverable, so the
+     * tablet never needs to ask "make visible" again. Shows the standard
+     * system pairing dialog once — accept it on both devices during setup.
+     * Returns true when already bonded or the bond process started.
+     */
+    fun bondDevice(bluetoothMac: String): Boolean {
+        return try {
+            val adapter = BluetoothAdapter.getDefaultAdapter() ?: return false
+            if (!adapter.isEnabled || !hasConnectPermission()) return false
+            val remote = adapter.getRemoteDevice(bluetoothMac)
+            val state = runCatching { remote.bondState }.getOrNull()
+            if (state == BluetoothDevice.BOND_BONDED) return true
+            runCatching { remote.createBond() }.getOrDefault(false)
+        } catch (e: Exception) {
+            Log.w(TAG, "Bond failed for $bluetoothMac: ${e.message}")
+            false
+        }
+    }
+
+    /**
      * Connects to [device] over RFCOMM and exchanges a single command/response pair.
      */
     suspend fun executeCommand(device: ChildDevice, command: Packet.Command): Packet.Response? {

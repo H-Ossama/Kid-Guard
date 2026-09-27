@@ -316,12 +316,21 @@ class DiscoveryViewModel(application: Application) : AndroidViewModel(applicatio
             deviceClient.registerBluetoothMac(candidate.deviceId, mac)
 
             // Verify the link and grab the child's friendly device name.
+            // Direct RFCOMM works immediately (token-authenticated); then bond
+            // once so the tablet stays reachable forever without having to be
+            // discoverable (no more "make visible" prompts on the child).
             var friendlyName = candidate.name
+            var handshakeOk = false
             try {
                 val statsResponse = bluetoothClient.executeCommand(mac, Packet.Command(CommandType.GET_STATS))
                 statsResponse?.stats?.deviceName?.takeIf { it.isNotBlank() }?.let { friendlyName = it }
+                handshakeOk = statsResponse != null
             } catch (e: Exception) {
                 Log.w("DiscoveryViewModel", "BT handshake failed for ${candidate.deviceId}", e)
+            }
+            if (handshakeOk) {
+                val bonded = bluetoothClient.bondDevice(mac)
+                Log.i("DiscoveryViewModel", "Bond with ${candidate.deviceId}: $bonded (accept pairing on both devices once)")
             }
             if (friendlyName.startsWith(BluetoothConfig.SERVICE_NAME_PREFIX)) {
                 friendlyName = friendlyName.removePrefix(BluetoothConfig.SERVICE_NAME_PREFIX)

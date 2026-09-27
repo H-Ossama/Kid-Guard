@@ -68,6 +68,12 @@ class MainActivity : AppCompatActivity() {
                             val ok = com.parentalguard.child.security.PinManager.verifyPin(this, pin)
                             if (ok) pinUnlocked.value = true
                             ok
+                        },
+                        onRemovePin = {
+                            com.parentalguard.child.security.PinManager.resetPin(this)
+                            refreshPinState()
+                            pinUnlocked.value = true
+                            Toast.makeText(this, getString(R.string.pin_removed), Toast.LENGTH_SHORT).show()
                         }
                     )
                     else -> MainScreen(
@@ -243,6 +249,10 @@ class MainActivity : AppCompatActivity() {
         }
         val adapter = runCatching { BluetoothAdapter.getDefaultAdapter() }.getOrNull() ?: return
         if (!adapter.isEnabled) return
+        // A bonded parent connects directly by MAC address — the tablet does
+        // not need to be discoverable. Once paired, never ask again.
+        val bondedCount = runCatching { adapter.bondedDevices?.size ?: 0 }.getOrDefault(0)
+        if (bondedCount > 0) return
         val discoverable = runCatching {
             adapter.scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE
         }.getOrDefault(false)
