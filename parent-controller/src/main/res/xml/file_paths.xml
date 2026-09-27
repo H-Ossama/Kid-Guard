@@ -3,4 +3,7 @@
     <cache-path
         name="shared_child_apk"
         path="shared/" />
+    <cache-path
+        name="downloaded_child_apk"
+        path="updates/" />
 </paths>

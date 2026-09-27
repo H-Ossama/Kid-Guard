@@ -18,12 +18,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.parentalguard.parent.R
 import com.parentalguard.parent.network.DeviceClient
+import com.parentalguard.parent.share.ChildApkSharer
 import com.parentalguard.parent.ui.currentAppVersion
 import com.parentalguard.parent.ui.neumorphic.NeumorphicButton
 import com.parentalguard.parent.ui.neumorphic.NeumorphicCard
 import com.parentalguard.parent.ui.neumorphic.Nm
 import com.parentalguard.parent.viewmodel.ChildDevice
 import kotlinx.coroutines.launch
+import java.io.File
 
 private sealed interface UpdateUiState {
     data object Idle : UpdateUiState
@@ -31,6 +33,10 @@ private sealed interface UpdateUiState {
     data class UpToDate(val latestTag: String) : UpdateUiState
     data class Available(val info: GitHubReleaseChecker.ChildReleaseInfo) : UpdateUiState
     data object Downloading : UpdateUiState
+    data class Downloaded(
+        val info: GitHubReleaseChecker.ChildReleaseInfo,
+        val file: File
+    ) : UpdateUiState
     data class Pushing(val done: Int, val total: Int) : UpdateUiState
     data class Done(val ok: Int, val failed: Int) : UpdateUiState
     data class Error(val message: String) : UpdateUiState
@@ -38,8 +44,14 @@ private sealed interface UpdateUiState {
 
 /**
  * "Child app updates" card for the Control (settings) screen: checks GitHub
- * releases, downloads the child APK once, then pushes it to every paired
- * child over LAN. Keep parent + child on the same Wi-Fi while pushing.
+ * releases, downloads the child APK once, then either pushes it to every
+ * paired child over LAN or shares the file (Quick Share/Bluetooth) for a
+ * manual install — e.g. a brand-new tablet.
+ *
+ * Storage: the downloaded file lives in cache and is deleted automatically
+ * after a fully successful push. (The copy bundled inside this app cannot be
+ * deleted at runtime — it is baked into the APK — so the GitHub copy is the
+ * way to get it back if space is ever reclaimed by other means.)
  */
 @Composable
 fun ChildUpdateSection(
@@ -51,6 +63,17 @@ fun ChildUpdateSection(
     val client = remember { DeviceClient() }
     var state by remember { mutableStateOf<UpdateUiState>(UpdateUiState.Idle) }
     val installed = remember { currentAppVersion(context) }
+
+    suspend fun checkForUpdate(): UpdateUiState {
+        val info = GitHubReleaseChecker.fetchLatestChildRelease()
+        return if (info == null) {
+            UpdateUiState.Error("GitHub unreachable")
+        } else if (GitHubReleaseChecker.isNewerVersion(info.versionTag, installed)) {
+            UpdateUiState.Available(info)
+        } else {
+            UpdateUiState.UpToDate(info.versionTag)
+        }
+    }
 
     NeumorphicCard(padding = 16.dp, corner = 24.dp, modifier = modifier.fillMaxWidth()) {
         Column {
@@ -75,6 +98,8 @@ fun ChildUpdateSection(
                 is UpdateUiState.Available ->
                     context.getString(R.string.child_update_current, installed, s.info.versionTag)
                 UpdateUiState.Downloading -> context.getString(R.string.child_update_downloading)
+                is UpdateUiState.Downloaded ->
+                    context.getString(R.string.child_update_downloaded, s.info.versionTag)
                 is UpdateUiState.Pushing ->
                     context.getString(R.string.child_update_pushing) + " (${s.done}/${s.total})"
                 is UpdateUiState.Done -> context.getString(R.string.child_update_success) +
@@ -87,20 +112,16 @@ fun ChildUpdateSection(
             }
 
             when (val s = state) {
-                UpdateUiState.Idle, is UpdateUiState.Error, is UpdateUiState.UpToDate, is UpdateUiState.Done -> {
+                UpdateUiState.Idle,
+                is UpdateUiState.Error,
+                is UpdateUiState.UpToDate,
+                is UpdateUiState.Done -> {
                     NeumorphicButton(
                         text = stringResource(R.string.child_update_check),
                         onClick = {
                             scope.launch {
                                 state = UpdateUiState.Checking
-                                val info = GitHubReleaseChecker.fetchLatestChildRelease()
-                                state = if (info == null) {
-                                    UpdateUiState.Error("GitHub unreachable")
-                                } else if (GitHubReleaseChecker.isNewerVersion(info.versionTag, installed)) {
-                                    UpdateUiState.Available(info)
-                                } else {
-                                    UpdateUiState.UpToDate(info.versionTag)
-                                }
+                                state = checkForUpdate()
                             }
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -114,19 +135,42 @@ fun ChildUpdateSection(
                     )
                     Spacer(Modifier.height(8.dp))
                     NeumorphicButton(
-                        text = context.getString(R.string.child_update_download_push, devices.size),
+                        text = stringResource(R.string.child_update_download),
+                        onClick = {
+                            scope.launch {
+                                state = UpdateUiState.Downloading
+                                val apk = ChildUpdateDownloader.download(context, s.info.downloadUrl)
+                                state = if (apk == null) {
+                                    UpdateUiState.Error("download failed")
+                                } else {
+                                    UpdateUiState.Downloaded(s.info, apk)
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    NeumorphicButton(
+                        text = stringResource(R.string.child_update_check),
+                        onClick = {
+                            scope.launch {
+                                state = UpdateUiState.Checking
+                                state = checkForUpdate()
+                            }
+                        },
+                        inset = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                is UpdateUiState.Downloaded -> {
+                    NeumorphicButton(
+                        text = context.getString(R.string.child_update_push, devices.size),
                         onClick = {
                             scope.launch {
                                 if (devices.isEmpty()) {
                                     state = UpdateUiState.Error(
                                         context.getString(R.string.child_update_no_devices)
                                     )
-                                    return@launch
-                                }
-                                state = UpdateUiState.Downloading
-                                val apk = ChildUpdateDownloader.download(context, s.info.downloadUrl)
-                                if (apk == null) {
-                                    state = UpdateUiState.Error("download failed")
                                     return@launch
                                 }
                                 var ok = 0
@@ -138,9 +182,14 @@ fun ChildUpdateSection(
                                         ip = device.ip.hostAddress ?: "",
                                         port = device.port,
                                         deviceId = device.deviceId,
-                                        apkFile = apk
+                                        apkFile = s.file
                                     )
                                     if (pushed) ok++ else failed++
+                                }
+                                if (failed == 0) {
+                                    // Fully delivered — delete the cached copy to save
+                                    // space. Re-download from GitHub anytime.
+                                    s.file.delete()
                                 }
                                 state = UpdateUiState.Done(ok, failed)
                             }
@@ -149,23 +198,15 @@ fun ChildUpdateSection(
                     )
                     Spacer(Modifier.height(8.dp))
                     NeumorphicButton(
-                        text = stringResource(R.string.child_update_check),
-                        onClick = {
-                            scope.launch {
-                                state = UpdateUiState.Checking
-                                val info = GitHubReleaseChecker.fetchLatestChildRelease()
-                                state = if (info == null) {
-                                    UpdateUiState.Error("GitHub unreachable")
-                                } else {
-                                    UpdateUiState.Available(info)
-                                }
-                            }
-                        },
+                        text = stringResource(R.string.child_update_share),
+                        onClick = { ChildApkSharer.shareFile(context, s.file) },
                         inset = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-                UpdateUiState.Checking, UpdateUiState.Downloading, is UpdateUiState.Pushing -> {
+                UpdateUiState.Checking,
+                UpdateUiState.Downloading,
+                is UpdateUiState.Pushing -> {
                     // Busy — no buttons until the step finishes.
                 }
             }

@@ -16,7 +16,19 @@ object ChildApkSharer {
             context.assets.open("kidguard-child.apk").use { input ->
                 apk.outputStream().use { output -> input.copyTo(output) }
             }
+            shareFile(context, apk)
+        } catch (e: Exception) {
+            Toast.makeText(
+                context,
+                context.getString(R.string.share_child_apk_unavailable),
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
 
+    /** Shares any APK file (e.g. a release downloaded from GitHub). */
+    fun shareFile(context: Context, apk: File) {
+        try {
             val uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.fileprovider",

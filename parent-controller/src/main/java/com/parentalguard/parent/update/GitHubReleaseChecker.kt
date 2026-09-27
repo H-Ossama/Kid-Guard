@@ -56,12 +56,12 @@ object GitHubReleaseChecker {
                 header("Accept", "application/vnd.github+json")
             }.body()
             if (release.tag_name.isBlank()) return null
-            // Prefer an APK whose name mentions "child"; fall back to any APK.
+            // Strict: only an APK with "child" in the name. Releases also carry
+            // the parent APK — pushing that to a child would be a disaster,
+            // so never fall back to "any APK".
             val asset = release.assets.firstOrNull {
                 it.name.endsWith(".apk", ignoreCase = true) &&
                     it.name.contains("child", ignoreCase = true)
-            } ?: release.assets.firstOrNull {
-                it.name.endsWith(".apk", ignoreCase = true)
             } ?: return null
             return ChildReleaseInfo(
                 versionTag = release.tag_name,
