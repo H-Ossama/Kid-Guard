@@ -546,6 +546,11 @@
     <string name="child_update_downloaded">Downloaded %1$s — push it or share the file</string>
     <string name="child_update_push">Push to %1$d device(s)</string>
     <string name="child_update_share">Share APK file</string>
+    <string name="child_update_device_needs">• %1$s: %2$s → update available</string>
+    <string name="child_update_device_current">• %1$s: up to date (%2$s)</string>
+    <string name="child_update_device_offline">• %1$s: unreachable right now</string>
+    <string name="child_update_all_current">All paired devices are up to date.</string>
+    <string name="child_update_retry_push">Re-check versions</string>
     <string name="child_update_downloading">Downloading update…</string>
     <string name="child_update_pushing">Pushing to child device… (keep both on the same Wi-Fi)</string>
     <string name="child_update_success">Update pushed — the child installs silently (Owner) or asks to confirm</string>
