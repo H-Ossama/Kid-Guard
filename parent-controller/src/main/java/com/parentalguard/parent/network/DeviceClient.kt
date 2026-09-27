@@ -283,6 +283,11 @@ class DeviceClient(context: Context? = null) {
         return executeCommand(ip, port, deviceId, "/unlock-response", command).response
     }
 
+    suspend fun setPinProtection(ip: String, port: Int, deviceId: String? = null, enabled: Boolean): Packet.Response? {
+        val command = Packet.Command(CommandType.SET_PIN_PROTECTION, enabled = enabled)
+        return executeCommand(ip, port, deviceId, "/device-name", command).response
+    }
+
     suspend fun resetPin(ip: String, port: Int, deviceId: String? = null): Packet.Response? {
         val command = Packet.Command(CommandType.RESET_PIN)
         return executeCommand(ip, port, deviceId, "/reset-pin", command).response

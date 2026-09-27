@@ -13,11 +13,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,13 +54,11 @@ enum class PinGateMode { SETUP, VERIFY }
 fun PinGateScreen(
     mode: PinGateMode,
     onSetupComplete: (String) -> Unit,
-    onVerify: (String) -> Boolean,
-    onRemovePin: () -> Unit = {}
+    onVerify: (String) -> Boolean
 ) {
     var pin by remember(mode) { mutableStateOf("") }
     var confirm by remember(mode) { mutableStateOf("") }
     var error by remember(mode) { mutableStateOf<String?>(null) }
-    var showRemoveConfirm by remember(mode) { mutableStateOf(false) }
     val context = androidx.compose.ui.platform.LocalContext.current
 
     NeumorphicBackground {
@@ -173,45 +169,8 @@ fun PinGateScreen(
                         icon = Icons.Default.Lock,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    if (mode == PinGateMode.VERIFY) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        TextButton(
-                            onClick = { showRemoveConfirm = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = stringResource(R.string.pin_remove_btn),
-                                color = NeumorphicOnSurfaceMuted,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
                 }
             }
         }
-    }
-
-    if (showRemoveConfirm) {
-        AlertDialog(
-            onDismissRequest = { showRemoveConfirm = false },
-            title = { Text(stringResource(R.string.pin_remove_title)) },
-            text = { Text(stringResource(R.string.pin_remove_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    showRemoveConfirm = false
-                    onRemovePin()
-                }) {
-                    Text(
-                        stringResource(R.string.pin_remove_btn),
-                        color = NeumorphicError
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showRemoveConfirm = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-        )
     }
 }

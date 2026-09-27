@@ -273,6 +273,8 @@
     <string name="action_unlock">Unlock</string>
     <string name="action_deny_request">Deny Request</string>
     <string name="request_allow_new">Allow new request</string>
+    <string name="child_pin_protection_title">Child app PIN</string>
+    <string name="child_pin_protection_desc">Require a PIN to open settings on the child device. Only you can change this.</string>
     <string name="dialog_custom_duration_title">Custom Duration</string>
     <string name="dialog_custom_duration_label">Enter unlock duration in minutes:</string>
     <string name="placeholder_duration_example">e.g. 45</string>

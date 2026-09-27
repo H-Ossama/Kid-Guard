@@ -28,7 +28,10 @@ class MainActivity : AppCompatActivity() {
     private val qrBitmap = mutableStateOf<Bitmap?>(null)
     private val deviceName = mutableStateOf("")
     // Protection PIN gate: settings are hidden until the PIN is set + verified.
-    // The parent can clear a forgotten PIN remotely ("Reset child PIN").
+    // The PARENT alone controls this feature: it can disable the whole gate
+    // remotely (then no PIN page appears at all) or clear a forgotten PIN.
+    // The child itself cannot change any of this.
+    private val pinProtectionOn = mutableStateOf(true)
     private val pinSet = mutableStateOf(false)
     private val pinUnlocked = mutableStateOf(false)
 
@@ -50,6 +53,15 @@ class MainActivity : AppCompatActivity() {
         setContent {
             ParentalGuardTheme {
                 when {
+                    !pinProtectionOn.value -> MainScreen(
+                        connectionString = connectionString.value,
+                        status = status.value,
+                        qrBitmap = qrBitmap.value,
+                        deviceName = deviceName.value,
+                        onRequestUnlock = { requestTemporaryUnlock() },
+                        onHideIcon = { hideLauncherIcon() },
+                        onRenameDevice = { showRenameDialog() }
+                    )
                     !pinSet.value -> PinGateScreen(
                         mode = PinGateMode.SETUP,
                         onSetupComplete = { pin ->
@@ -68,12 +80,6 @@ class MainActivity : AppCompatActivity() {
                             val ok = com.parentalguard.child.security.PinManager.verifyPin(this, pin)
                             if (ok) pinUnlocked.value = true
                             ok
-                        },
-                        onRemovePin = {
-                            com.parentalguard.child.security.PinManager.resetPin(this)
-                            refreshPinState()
-                            pinUnlocked.value = true
-                            Toast.makeText(this, getString(R.string.pin_removed), Toast.LENGTH_SHORT).show()
                         }
                     )
                     else -> MainScreen(
@@ -109,8 +115,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun refreshPinState() {
+        pinProtectionOn.value = com.parentalguard.child.security.PinManager.isProtectionEnabled(this)
         pinSet.value = com.parentalguard.child.security.PinManager.isPinSet(this)
-        if (!pinSet.value) pinUnlocked.value = false
+        if (!pinProtectionOn.value || !pinSet.value) pinUnlocked.value = false
     }
 
     private fun updateConnectionInfo() {

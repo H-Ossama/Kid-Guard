@@ -139,7 +139,8 @@ class CommandServer(private val context: Context) {
                         childAppVersionName = runCatching { com.parentalguard.child.BuildConfig.VERSION_NAME }.getOrNull(),
                         childAppVersionCode = runCatching { com.parentalguard.child.BuildConfig.VERSION_CODE }.getOrDefault(0),
                         childPinSet = com.parentalguard.child.security.PinManager.isPinSet(this@CommandServer.context),
-                        updateResult = com.parentalguard.child.update.ApkInstallReceiver.lastResult(this@CommandServer.context)
+                        updateResult = com.parentalguard.child.update.ApkInstallReceiver.lastResult(this@CommandServer.context),
+                        pinProtectionEnabled = com.parentalguard.child.security.PinManager.isProtectionEnabled(this@CommandServer.context)
                     )
                     call.respond(Packet.Response(true, stats = stats))
                 }
@@ -262,6 +263,16 @@ class CommandServer(private val context: Context) {
                             val prefs = this@CommandServer.context.getSharedPreferences("relay_prefs", Context.MODE_PRIVATE)
                             prefs.edit().putString("parent_id", packet.relayParentId).apply()
                             call.respond(Packet.Response(true, "Relay Parent ID updated"))
+                        } else if (packet.commandType == CommandType.SET_PIN_PROTECTION && packet.enabled != null) {
+                            val enabled = packet.enabled!!
+                            Log.i("CommandServer", "PIN protection set to: $enabled")
+                            com.parentalguard.child.security.PinManager.setProtectionEnabled(this@CommandServer.context, enabled)
+                            call.respond(
+                                Packet.Response(
+                                    true,
+                                    if (enabled) "PIN protection enabled" else "PIN protection disabled"
+                                )
+                            )
                         } else {
                              call.respond(Packet.Response(false, "Invalid command"))
                         }

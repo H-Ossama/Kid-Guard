@@ -187,6 +187,7 @@ fun DeviceConsoleScreen(
     val blockingScreenStyleSaves by viewModel.blockingScreenStyleSaves.collectAsState()
     val deviceOwnerCapabilities by viewModel.deviceOwnerCapabilities.collectAsState()
     val childPinSetByDevice by viewModel.childPinSet.collectAsState()
+    val pinProtectionByDevice by viewModel.pinProtection.collectAsState()
     val isChildPinSet = childPinSetByDevice[device.deviceId] ?: false
     val usageLogsByDevice by viewModel.usageLogsByDevice.collectAsState()
     val isRefreshingApps by viewModel.isRefreshingApps.collectAsState()
@@ -344,6 +345,7 @@ fun DeviceConsoleScreen(
                         usageLogs = usageLogs,
                         activeRules = activeRules,
                         isLocked = isLocked,
+                        pinProtectionOn = pinProtectionByDevice[device.deviceId] ?: true,
                         blockingScreenStyle = selectedBlockingScreenStyle,
                         isBlockingScreenStyleSaving = isBlockingScreenStyleSaving,
                         onResetPin = { showResetPinDialog = true },
@@ -404,6 +406,7 @@ private fun NowSegment(
     usageLogs: List<AppUsageLog>,
     activeRules: List<BlockingRule>,
     isLocked: Boolean,
+    pinProtectionOn: Boolean,
     blockingScreenStyle: BlockingScreenStyle,
     isBlockingScreenStyleSaving: Boolean,
     onResetPin: () -> Unit,
@@ -411,6 +414,10 @@ private fun NowSegment(
 ) {
     val isAppIconHidden by viewModel.isAppIconHidden.collectAsState()
     val totalScreenTime = usageLogs.sumOf { it.totalTimeInForeground }
+    val nowMs = System.currentTimeMillis()
+    val hasLockedApp = activeRules.any {
+        it.isPermanentlyBlocked || it.blockEndTime > nowMs
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -428,17 +435,20 @@ private fun NowSegment(
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                     Box(contentAlignment = Alignment.Center) {
                         BreathingShield(locked = isLocked)
-                        // Reactivate requests: clears the child's 15-minute
-                        // request cooldown so it can ask again immediately.
-                        NeumorphicIconTile(
-                            icon = Icons.Default.NotificationsActive,
-                            tint = Nm.warning,
-                            size = 40.dp,
-                            iconSize = 18.dp,
-                            onClick = { viewModel.resetRequestCooldown(device) },
-                            contentDescription = stringResource(R.string.request_allow_new),
-                            modifier = Modifier.align(Alignment.BottomEnd)
-                        )
+                        // Shown only while the device or an app is locked: one
+                        // tap clears the child's request cooldown so it can
+                        // ask again immediately (you still approve each one).
+                        if (isLocked || hasLockedApp) {
+                            NeumorphicIconTile(
+                                icon = Icons.Default.NotificationsActive,
+                                tint = Nm.warning,
+                                size = 40.dp,
+                                iconSize = 18.dp,
+                                onClick = { viewModel.resetRequestCooldown(device) },
+                                contentDescription = stringResource(R.string.request_allow_new),
+                                modifier = Modifier.align(Alignment.BottomEnd)
+                            )
+                        }
                     }
                     Spacer(Modifier.height(14.dp))
                     NeumorphicStatusPill(
@@ -570,6 +580,30 @@ private fun NowSegment(
         item {
             Column(Modifier.auraEnter(5)) {
                 NmDivider(Modifier.padding(vertical = 6.dp))
+                NeumorphicCard(modifier = Modifier.fillMaxWidth(), padding = 16.dp, corner = 24.dp) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        NeumorphicIconTile(icon = Icons.Default.Key, tint = Nm.primary, size = 38.dp, iconSize = 18.dp)
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                stringResource(R.string.child_pin_protection_title),
+                                color = Nm.onSurface,
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            Spacer(Modifier.height(1.dp))
+                            Text(
+                                stringResource(R.string.child_pin_protection_desc),
+                                color = Nm.onSurfaceMuted,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        NeumorphicSwitch(
+                            checked = pinProtectionOn,
+                            onCheckedChange = { viewModel.setPinProtection(device, it) }
+                        )
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     Row(
                         modifier = Modifier.width(IntrinsicSize.Max),

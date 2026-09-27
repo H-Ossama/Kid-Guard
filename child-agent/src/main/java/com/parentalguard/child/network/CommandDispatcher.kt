@@ -52,7 +52,8 @@ object CommandDispatcher {
                              childAppVersionName = runCatching { com.parentalguard.child.BuildConfig.VERSION_NAME }.getOrNull(),
                              childAppVersionCode = runCatching { com.parentalguard.child.BuildConfig.VERSION_CODE }.getOrDefault(0),
                              childPinSet = com.parentalguard.child.security.PinManager.isPinSet(context),
-                             updateResult = com.parentalguard.child.update.ApkInstallReceiver.lastResult(context)
+                             updateResult = com.parentalguard.child.update.ApkInstallReceiver.lastResult(context),
+                             pinProtectionEnabled = com.parentalguard.child.security.PinManager.isProtectionEnabled(context)
                           ))
                      }
 
@@ -191,6 +192,19 @@ object CommandDispatcher {
                     CommandType.RESET_REQUEST_COOLDOWN -> {
                         RuleRepository.clearUnlockRequestCooldown()
                         Packet.Response(true, "Request cooldown cleared")
+                    }
+
+                    CommandType.SET_PIN_PROTECTION -> {
+                        val enabled = command.enabled
+                        if (enabled == null) {
+                            Packet.Response(false, "Invalid PIN protection command")
+                        } else {
+                            com.parentalguard.child.security.PinManager.setProtectionEnabled(context, enabled)
+                            Packet.Response(
+                                true,
+                                if (enabled) "PIN protection enabled" else "PIN protection disabled"
+                            )
+                        }
                     }
 
                     CommandType.RESET_PIN -> {

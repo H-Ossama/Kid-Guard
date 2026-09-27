@@ -8,6 +8,7 @@ object PinManager {
     private const val PREFS_NAME = "pin_prefs"
     private const val KEY_PIN_HASH = "pin_hash"
     private const val KEY_PIN_SET = "pin_set"
+    private const val KEY_PROTECTION_ENABLED = "pin_protection_enabled"
     
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -60,5 +61,18 @@ object PinManager {
             .remove(KEY_PIN_HASH)
             .putBoolean(KEY_PIN_SET, false)
             .apply()
+    }
+
+    /**
+     * Master switch, controlled ONLY by the parent app. When disabled, the
+     * child opens settings freely: no setup page, no verification page, and
+     * the child itself has no way to turn it back on.
+     */
+    fun isProtectionEnabled(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_PROTECTION_ENABLED, true)
+    }
+
+    fun setProtectionEnabled(context: Context, enabled: Boolean) {
+        getPrefs(context).edit().putBoolean(KEY_PROTECTION_ENABLED, enabled).apply()
     }
 }

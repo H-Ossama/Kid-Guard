@@ -90,6 +90,9 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
     private val _childPinSet = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     val childPinSet: StateFlow<Map<String, Boolean>> = _childPinSet.asStateFlow()
 
+    private val _pinProtection = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val pinProtection: StateFlow<Map<String, Boolean>> = _pinProtection.asStateFlow()
+
     private val statsGenerations = mutableMapOf<String, Long>()
     
     fun refresh(device: ChildDevice) {
@@ -146,6 +149,8 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
                     (device.deviceId to (response.stats?.blockingScreenStyle ?: BlockingScreenStyle.CURRENT))
                 _childPinSet.value = _childPinSet.value +
                     (device.deviceId to (response.stats?.childPinSet ?: false))
+                _pinProtection.value = _pinProtection.value +
+                    (device.deviceId to (response.stats?.pinProtectionEnabled ?: true))
                 
                 // Process icons if included
                 if (includeIcons) {
@@ -459,6 +464,19 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
                 _statusMessage.value = "Child can send another request now"
             } else {
                 _statusMessage.value = "Failed to reset request cooldown"
+            }
+        }
+    }
+
+    fun setPinProtection(device: ChildDevice, enabled: Boolean) {
+        viewModelScope.launch {
+            registerDeviceCredentials(device)
+            val response = client.setPinProtection(device.ip.hostAddress ?: "", device.port, device.deviceId, enabled)
+            if (response != null && response.success) {
+                _statusMessage.value = if (enabled) "Child PIN protection enabled" else "Child PIN protection disabled"
+                fetchStats(device)
+            } else {
+                _statusMessage.value = "Failed to update PIN protection"
             }
         }
     }

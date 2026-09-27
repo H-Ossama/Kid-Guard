@@ -268,6 +268,8 @@
     <string name="action_unlock">فتح القفل</string>
     <string name="action_deny_request">رفض الطلب</string>
     <string name="request_allow_new">سمح بطلب جديد</string>
+    <string name="child_pin_protection_title">PIN تطبيق الولد</string>
+    <string name="child_pin_protection_desc">طلب رمز سري باش تحل الإعدادات فجهاز الولد. غير نتا اللي تقدر تبدل هادشي.</string>
     <string name="dialog_custom_duration_title">مدة مخصصة</string>
     <string name="dialog_custom_duration_label">أدخل مدة الفتح بالدقائق:</string>
     <string name="placeholder_duration_example">مثلاً 45</string>
