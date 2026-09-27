@@ -13,8 +13,8 @@ android {
         applicationId = "com.android.system.services.internal" // Disguised package name
         minSdk = 26
         targetSdk = 34
-        versionCode = 2
-        versionName = "2.4.8"
+        versionCode = 3
+        versionName = "3.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

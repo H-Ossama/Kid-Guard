@@ -7,7 +7,7 @@ import android.net.Uri
 fun currentAppVersion(context: Context): String {
     return runCatching {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName
-    }.getOrNull() ?: "2.4.8"
+    }.getOrNull() ?: "3.0.1"
 }
 
 fun openUrl(context: Context, url: String) {
