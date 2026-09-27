@@ -264,6 +264,7 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
 
     fun toggleAppBlock(device: ChildDevice, packageName: String, discoveryViewModel: DiscoveryViewModel? = null) {
         viewModelScope.launch {
+            registerDeviceCredentials(device)
             val currentRule = _activeRules.value.find { it.packageName == packageName }
             // Check if currently blocked (rule exists and not expired)
             val isBlocked = currentRule != null && (currentRule.blockEndTime > System.currentTimeMillis() || currentRule.isPermanentlyBlocked)
@@ -396,6 +397,7 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
     
     fun approveUnlockRequest(device: ChildDevice, durationMinutes: Int = 10, packageName: String? = null, discoveryViewModel: DiscoveryViewModel? = null) {
         viewModelScope.launch {
+            registerDeviceCredentials(device)
             val response = client.approveUnlock(device.ip.hostAddress ?: "", device.port, device.deviceId, durationMinutes * 60 * 1000L, packageName)
             if (response != null && response.success) {
                 _statusMessage.value = "Unlock approved for $durationMinutes minutes"
@@ -412,6 +414,7 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
     
     fun denyUnlockRequest(device: ChildDevice) {
         viewModelScope.launch {
+            registerDeviceCredentials(device)
             val response = client.denyUnlock(device.ip.hostAddress ?: "", device.port, device.deviceId)
             if (response != null && response.success) {
                 _statusMessage.value = "Unlock request denied"
@@ -424,6 +427,7 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
     
     fun approveExtension(device: ChildDevice) {
         viewModelScope.launch {
+            registerDeviceCredentials(device)
             val response = client.approveExtension(device.ip.hostAddress ?: "", device.port, device.deviceId)
             if (response != null && response.success) {
                 _statusMessage.value = "Extension approved (+1 min)"
@@ -436,6 +440,7 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
     
     fun denyExtension(device: ChildDevice) {
         viewModelScope.launch {
+            registerDeviceCredentials(device)
             val response = client.denyExtension(device.ip.hostAddress ?: "", device.port, device.deviceId)
             if (response != null && response.success) {
                 _statusMessage.value = "Extension denied"
@@ -446,8 +451,21 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
         }
     }
 
+    fun resetRequestCooldown(device: ChildDevice) {
+        viewModelScope.launch {
+            registerDeviceCredentials(device)
+            val response = client.resetRequestCooldown(device.ip.hostAddress ?: "", device.port, device.deviceId)
+            if (response != null && response.success) {
+                _statusMessage.value = "Child can send another request now"
+            } else {
+                _statusMessage.value = "Failed to reset request cooldown"
+            }
+        }
+    }
+
     fun resetPin(device: ChildDevice) {
         viewModelScope.launch {
+            registerDeviceCredentials(device)
             val response = client.resetPin(device.ip.hostAddress ?: "", device.port, device.deviceId)
             if (response != null && response.success) {
                 _statusMessage.value = "PIN reset successfully"
@@ -462,6 +480,7 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
 
     fun lockDevice(device: ChildDevice, locked: Boolean, discoveryViewModel: DiscoveryViewModel? = null) {
         viewModelScope.launch {
+            registerDeviceCredentials(device)
             val response = client.setLock(device.ip.hostAddress ?: "", device.port, device.deviceId, locked)
             if (response != null && response.success) {
                 _isDeviceLocked.value = locked
@@ -575,6 +594,7 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
 
     fun stopBreak(device: ChildDevice) {
         viewModelScope.launch {
+            registerDeviceCredentials(device)
             val response = client.stopBreak(device.ip.hostAddress ?: "", device.port, device.deviceId)
             if (response != null && response.success) {
                 _statusMessage.value = "Break stopped"

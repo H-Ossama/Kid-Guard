@@ -81,16 +81,23 @@ fun RequestScreen(
     onBack: () -> Unit
 ) {
     val knownDevices = discoveryViewModel?.devices?.collectAsState()?.value ?: emptyList()
-    val device = remember(deviceId, knownDevices) {
+    val resolvedDevice = remember(deviceId, knownDevices) {
         knownDevices.find { it.deviceId == deviceId }
-            ?: ChildDevice(
-                deviceId = deviceId,
-                name = deviceName,
-                ip = InetAddress.getByName("127.0.0.1"),
-                port = 8080,
-                customName = deviceName
-            )
     }
+    // If the screen opened from a notification before devices finished loading
+    // (cold start), there is nothing to resolve against yet — refresh once so
+    // the real device (IP, token, MAC) replaces the placeholder below.
+    androidx.compose.runtime.LaunchedEffect(deviceId, knownDevices.size) {
+        if (resolvedDevice == null) discoveryViewModel?.refreshDevices()
+    }
+    val device = resolvedDevice
+        ?: ChildDevice(
+            deviceId = deviceId,
+            name = deviceName,
+            ip = InetAddress.getByName("127.0.0.1"),
+            port = 8080,
+            customName = deviceName
+        )
 
     var showCustomDialog by remember { mutableStateOf(false) }
     var customMinutes by remember { mutableStateOf("") }
@@ -247,6 +254,15 @@ fun RequestScreen(
                         inset = true,
                         modifier = Modifier.fillMaxWidth()
                     )
+                    NeumorphicButton(
+                        text = stringResource(R.string.request_allow_new),
+                        onClick = { viewModel.resetRequestCooldown(device) },
+                        icon = Icons.Default.Add,
+                        tint = Nm.onSurfaceMuted,
+                        iconTint = Nm.onSurfaceMuted,
+                        inset = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             } else {
                 Column(
@@ -296,6 +312,15 @@ fun RequestScreen(
                         icon = Icons.Default.Block,
                         tint = Nm.danger,
                         iconTint = Nm.danger,
+                        inset = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    NeumorphicButton(
+                        text = stringResource(R.string.request_allow_new),
+                        onClick = { viewModel.resetRequestCooldown(device) },
+                        icon = Icons.Default.Add,
+                        tint = Nm.onSurfaceMuted,
+                        iconTint = Nm.onSurfaceMuted,
                         inset = true,
                         modifier = Modifier.fillMaxWidth()
                     )

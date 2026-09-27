@@ -278,6 +278,11 @@ class DeviceClient(context: Context? = null) {
         return executeCommand(ip, port, deviceId, "/unlock-response", command).response
     }
 
+    suspend fun resetRequestCooldown(ip: String, port: Int, deviceId: String? = null): Packet.Response? {
+        val command = Packet.Command(CommandType.RESET_REQUEST_COOLDOWN)
+        return executeCommand(ip, port, deviceId, "/unlock-response", command).response
+    }
+
     suspend fun resetPin(ip: String, port: Int, deviceId: String? = null): Packet.Response? {
         val command = Packet.Command(CommandType.RESET_PIN)
         return executeCommand(ip, port, deviceId, "/reset-pin", command).response

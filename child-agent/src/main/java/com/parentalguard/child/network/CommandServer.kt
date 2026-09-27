@@ -331,6 +331,11 @@ class CommandServer(private val context: Context) {
                                 RuleRepository.setGlobalLock(false)
                                 call.respond(Packet.Response(true, "Break stopped"))
                             }
+                            CommandType.RESET_REQUEST_COOLDOWN -> {
+                                Log.i("CommandServer", "Request cooldown cleared by parent")
+                                RuleRepository.clearUnlockRequestCooldown()
+                                call.respond(Packet.Response(true, "Request cooldown cleared"))
+                            }
                             else -> {
                                 call.respond(Packet.Response(false, "Invalid unlock response"))
                             }

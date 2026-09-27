@@ -188,6 +188,11 @@ object CommandDispatcher {
                         Packet.Response(true, "Break stopped")
                     }
 
+                    CommandType.RESET_REQUEST_COOLDOWN -> {
+                        RuleRepository.clearUnlockRequestCooldown()
+                        Packet.Response(true, "Request cooldown cleared")
+                    }
+
                     CommandType.RESET_PIN -> {
                         com.parentalguard.child.security.PinManager.resetPin(context)
                         Packet.Response(true, "PIN reset successfully")
