@@ -19,6 +19,27 @@ object ChildUpdateDownloader {
         return File(dir, "kidguard-child-update.apk")
     }
 
+    private fun prefs(context: Context) =
+        context.getSharedPreferences("child_updates", Context.MODE_PRIVATE)
+
+    /** Version tag of the cached APK (so a re-check reuses it instead of re-downloading). */
+    fun cachedTag(context: Context): String? = prefs(context).getString("cached_apk_tag", null)
+
+    fun isCacheValid(context: Context, tag: String): Boolean {
+        val file = updateFile(context)
+        return file.exists() && file.length() >= 1_000_000 &&
+            cachedTag(context) == GitHubReleaseChecker.cleanTag(tag)
+    }
+
+    private fun saveCachedTag(context: Context, tag: String) {
+        prefs(context).edit().putString("cached_apk_tag", GitHubReleaseChecker.cleanTag(tag)).apply()
+    }
+
+    fun clearCache(context: Context) {
+        runCatching { updateFile(context).delete() }
+        prefs(context).edit().remove("cached_apk_tag").apply()
+    }
+
     /**
      * Downloads [url] to [updateFile]. Returns the file on success, null on failure.
      * Reports progress (0..1) via [onProgress] when content length is known.
@@ -26,6 +47,7 @@ object ChildUpdateDownloader {
     suspend fun download(
         context: Context,
         url: String,
+        versionTag: String,
         onProgress: (Float) -> Unit = {}
     ): File? {
         val client = HttpClient(CIO)
@@ -49,6 +71,7 @@ object ChildUpdateDownloader {
             }
             if (dest.exists()) dest.delete()
             tmp.renameTo(dest)
+            saveCachedTag(context, versionTag)
             return dest
         } catch (_: Exception) {
             return null

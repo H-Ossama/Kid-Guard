@@ -51,7 +51,8 @@ object CommandDispatcher {
                              blockingScreenStyle = RuleRepository.blockingScreenStyle.value,
                              childAppVersionName = runCatching { com.parentalguard.child.BuildConfig.VERSION_NAME }.getOrNull(),
                              childAppVersionCode = runCatching { com.parentalguard.child.BuildConfig.VERSION_CODE }.getOrDefault(0),
-                             childPinSet = com.parentalguard.child.security.PinManager.isPinSet(context)
+                             childPinSet = com.parentalguard.child.security.PinManager.isPinSet(context),
+                             updateResult = com.parentalguard.child.update.ApkInstallReceiver.lastResult(context)
                           ))
                      }
 

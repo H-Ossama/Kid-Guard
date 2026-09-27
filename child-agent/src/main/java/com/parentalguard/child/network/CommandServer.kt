@@ -138,7 +138,8 @@ class CommandServer(private val context: Context) {
                         blockingScreenStyle = RuleRepository.blockingScreenStyle.value,
                         childAppVersionName = runCatching { com.parentalguard.child.BuildConfig.VERSION_NAME }.getOrNull(),
                         childAppVersionCode = runCatching { com.parentalguard.child.BuildConfig.VERSION_CODE }.getOrDefault(0),
-                        childPinSet = com.parentalguard.child.security.PinManager.isPinSet(this@CommandServer.context)
+                        childPinSet = com.parentalguard.child.security.PinManager.isPinSet(this@CommandServer.context),
+                        updateResult = com.parentalguard.child.update.ApkInstallReceiver.lastResult(this@CommandServer.context)
                     )
                     call.respond(Packet.Response(true, stats = stats))
                 }
@@ -389,8 +390,12 @@ class CommandServer(private val context: Context) {
                             if (dest.exists()) dest.delete()
                             tmp.renameTo(dest)
                             when (val result = ApkInstaller.installApk(this@CommandServer.context, dest)) {
-                                is ApkInstaller.Result.Accepted ->
+                                is ApkInstaller.Result.Accepted -> {
+                                    com.parentalguard.child.update.ApkInstallReceiver.saveResult(
+                                        this@CommandServer.context, "INSTALLING"
+                                    )
                                     call.respond(Packet.Response(true, "Update accepted for install"))
+                                }
                                 is ApkInstaller.Result.Rejected ->
                                     call.respond(Packet.Response(false, result.reason))
                             }

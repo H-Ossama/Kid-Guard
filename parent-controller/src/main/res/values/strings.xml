@@ -551,6 +551,10 @@
     <string name="child_update_device_offline">• %1$s: unreachable right now</string>
     <string name="child_update_all_current">All paired devices are up to date.</string>
     <string name="child_update_retry_push">Re-check versions</string>
+    <string name="child_update_verifying">Confirming versions on devices…</string>
+    <string name="child_update_cached">Already downloaded %1$s — no download needed</string>
+    <string name="child_update_install_result">Install result on %1$s: %2$s</string>
+    <string name="child_update_push_again">Push again (no download)</string>
     <string name="child_update_downloading">Downloading update…</string>
     <string name="child_update_pushing">Pushing to child device… (keep both on the same Wi-Fi)</string>
     <string name="child_update_success">Update pushed — the child installs silently (Owner) or asks to confirm</string>

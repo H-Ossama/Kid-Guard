@@ -29,38 +29,49 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
 
+/** Installed version + last install outcome reported by one child. Nulls = unreachable. */
+private data class DeviceVersion(
+    val version: String?,
+    val updateResult: String?
+)
+
 private sealed interface UpdateUiState {
     data object Idle : UpdateUiState
     data object Checking : UpdateUiState
     data class UpToDate(val latestTag: String) : UpdateUiState
     data class Available(
         val info: GitHubReleaseChecker.ChildReleaseInfo,
-        /** deviceId -> installed child version (null = unreachable/unknown). */
-        val versions: Map<String, String?>
+        val stats: Map<String, DeviceVersion>
     ) : UpdateUiState
     data object Downloading : UpdateUiState
     data class Downloaded(
         val info: GitHubReleaseChecker.ChildReleaseInfo,
         val file: File,
-        val versions: Map<String, String?>
+        val stats: Map<String, DeviceVersion>
     ) : UpdateUiState
     data class Pushing(val done: Int, val total: Int) : UpdateUiState
-    data class Done(val ok: Int, val failed: Int, val file: File?) : UpdateUiState
+    data object Verifying : UpdateUiState
+    data class Done(
+        val ok: Int,
+        val failed: Int,
+        /** Kept when some device still needs it — retry without re-downloading. */
+        val file: File?,
+        val stats: Map<String, DeviceVersion>,
+        val latestTag: String
+    ) : UpdateUiState
     data class Error(val message: String) : UpdateUiState
 }
 
 /**
  * "Child app updates" card for the Control (settings) screen.
  *
- * Correctness rule: what matters is each CHILD's installed version, never the
- * parent's. Check fetches the latest GitHub release AND every paired child's
- * reported version, shows per-device status, then downloads once and pushes
- * only to devices that are outdated or unreachable-but-try-anyway.
- *
- * Storage: the downloaded file lives in cache and is deleted automatically
- * after a fully successful push. (The copy bundled inside this app cannot be
- * deleted at runtime — it is baked into the APK — so the GitHub copy is the
- * way to get it back if space is ever reclaimed by other means.)
+ * Correctness rules:
+ * - What matters is each CHILD's installed version, never the parent's.
+ * - A downloaded file is reused across checks (no forced re-download).
+ * - After pushing, versions are re-read from the devices: only when every
+ *   target reports the new version is the cache deleted. Otherwise the file
+ *   is kept and the real per-device outcome (including the child's own
+ *   install result, e.g. a PackageInstaller failure) is shown.
  */
 @Composable
 fun ChildUpdateSection(
@@ -72,51 +83,80 @@ fun ChildUpdateSection(
     val client = remember { DeviceClient() }
     var state by remember { mutableStateOf<UpdateUiState>(UpdateUiState.Idle) }
 
-    suspend fun fetchChildVersions(): Map<String, String?> = coroutineScope {
+    suspend fun fetchStats(): Map<String, DeviceVersion> = coroutineScope {
         devices.map { device ->
             async {
                 device.pairToken?.let { client.registerPairToken(device.deviceId, it) }
                 device.bluetoothMac?.let { client.registerBluetoothMac(device.deviceId, it) }
-                val version = runCatching {
+                val stats = runCatching {
                     client.getStatsWithConnectionType(
                         ip = device.ip.hostAddress ?: "",
                         port = device.port,
                         deviceId = device.deviceId,
                         includeIcons = false
-                    ).response?.stats?.childAppVersionName
+                    ).response?.stats
                 }.getOrNull()
-                device.deviceId to version
+                device.deviceId to DeviceVersion(
+                    version = stats?.childAppVersionName,
+                    updateResult = stats?.updateResult
+                )
             }
         }.awaitAll().toMap()
     }
 
+    fun Map<String, DeviceVersion>.updatable(tag: String): List<ChildDevice> =
+        devices.filter { device ->
+            val installed = get(device.deviceId)?.version
+            installed == null || GitHubReleaseChecker.isNewerVersion(tag, installed)
+        }
+
     suspend fun checkForUpdate(): UpdateUiState {
         val info = GitHubReleaseChecker.fetchLatestChildRelease()
             ?: return UpdateUiState.Error("GitHub unreachable")
-        val versions = fetchChildVersions()
+        val stats = fetchStats()
         val needsUpdate = devices.any { device ->
-            val installed = versions[device.deviceId]
+            val installed = stats[device.deviceId]?.version
             installed == null || GitHubReleaseChecker.isNewerVersion(info.versionTag, installed)
         }
-        return if (needsUpdate) {
-            UpdateUiState.Available(info, versions)
-        } else {
-            UpdateUiState.UpToDate(info.versionTag)
+        if (!needsUpdate) return UpdateUiState.UpToDate(info.versionTag)
+        // Reuse a previous download of this exact version instead of fetching again.
+        if (ChildUpdateDownloader.isCacheValid(context, info.versionTag)) {
+            return UpdateUiState.Downloaded(info, ChildUpdateDownloader.updateFile(context), stats)
         }
+        return UpdateUiState.Available(info, stats)
     }
 
-    /** Devices worth pushing to: outdated, or version unknown (try anyway). */
-    fun UpdateUiState.Available.updatable(tag: String = info.versionTag): List<ChildDevice> =
-        devices.filter { device ->
-            val installed = versions[device.deviceId]
-            installed == null || GitHubReleaseChecker.isNewerVersion(tag, installed)
+    suspend fun pushFile(file: File, targets: List<ChildDevice>, tag: String) {
+        var ok = 0
+        var failed = 0
+        targets.forEachIndexed { index, device ->
+            state = UpdateUiState.Pushing(index, targets.size)
+            device.pairToken?.let { client.registerPairToken(device.deviceId, it) }
+            val pushed = client.uploadChildApk(
+                ip = device.ip.hostAddress ?: "",
+                port = device.port,
+                deviceId = device.deviceId,
+                apkFile = file
+            )
+            if (pushed) ok++ else failed++
         }
-
-    fun UpdateUiState.Downloaded.updatable(tag: String = info.versionTag): List<ChildDevice> =
-        devices.filter { device ->
-            val installed = versions[device.deviceId]
-            installed == null || GitHubReleaseChecker.isNewerVersion(tag, installed)
+        // "Pushed" only means the child accepted the file — the install itself
+        // happens on-device. Re-read versions to learn the truth.
+        state = UpdateUiState.Verifying
+        val fresh = fetchStats()
+        val cleanTag = GitHubReleaseChecker.cleanTag(tag)
+        val stillOutdated = targets.any { device ->
+            val v = fresh[device.deviceId]?.version
+            v == null || GitHubReleaseChecker.isNewerVersion(cleanTag, v)
         }
+        val keptFile = if (!stillOutdated) {
+            ChildUpdateDownloader.clearCache(context)
+            null
+        } else {
+            if (file.exists()) file else null
+        }
+        state = UpdateUiState.Done(ok, failed, keptFile, fresh, cleanTag)
+    }
 
     NeumorphicCard(padding = 16.dp, corner = 24.dp, modifier = modifier.fillMaxWidth()) {
         Column {
@@ -133,11 +173,15 @@ fun ChildUpdateSection(
             )
             Spacer(Modifier.height(10.dp))
 
-            // Per-device version lines when known.
-            val versionLines: List<String>? = when (val s = state) {
-                is UpdateUiState.Available -> s.versions.toDeviceLines(devices, context, s.info.versionTag)
-                is UpdateUiState.Downloaded -> s.versions.toDeviceLines(devices, context, s.info.versionTag)
+            // Per-device version + install-result lines when known.
+            val statsAndTag: Pair<Map<String, DeviceVersion>, String?>? = when (val s = state) {
+                is UpdateUiState.Available -> s.stats to s.info.versionTag
+                is UpdateUiState.Downloaded -> s.stats to s.info.versionTag
+                is UpdateUiState.Done -> s.stats to s.latestTag
                 else -> null
+            }
+            val versionLines = statsAndTag?.let { (statsMap, tag) ->
+                statsMap.toDeviceLines(devices, context, tag)
             }
             versionLines?.forEach { line ->
                 Text(text = line, color = Nm.onSurface, style = MaterialTheme.typography.bodyMedium)
@@ -153,9 +197,16 @@ fun ChildUpdateSection(
                     context.getString(R.string.child_update_available, s.info.versionTag)
                 UpdateUiState.Downloading -> context.getString(R.string.child_update_downloading)
                 is UpdateUiState.Downloaded ->
-                    context.getString(R.string.child_update_downloaded, s.info.versionTag)
+                    if (ChildUpdateDownloader.isCacheValid(context, s.info.versionTag) &&
+                        s.file.length() == ChildUpdateDownloader.updateFile(context).length()
+                    ) {
+                        context.getString(R.string.child_update_cached, s.info.versionTag)
+                    } else {
+                        context.getString(R.string.child_update_downloaded, s.info.versionTag)
+                    }
                 is UpdateUiState.Pushing ->
                     context.getString(R.string.child_update_pushing) + " (${s.done}/${s.total})"
+                UpdateUiState.Verifying -> context.getString(R.string.child_update_verifying)
                 is UpdateUiState.Done -> context.getString(R.string.child_update_success) +
                     " (${s.ok} ok, ${s.failed} failed)"
                 is UpdateUiState.Error -> context.getString(R.string.child_update_failed, s.message)
@@ -185,8 +236,7 @@ fun ChildUpdateSection(
                     )
                 }
                 is UpdateUiState.Available -> {
-                    val targets = s.updatable()
-                    if (targets.isEmpty()) {
+                    if (s.stats.updatable(s.info.versionTag).isEmpty()) {
                         Text(
                             text = stringResource(R.string.child_update_all_current),
                             color = Nm.onSurface,
@@ -199,11 +249,13 @@ fun ChildUpdateSection(
                         onClick = {
                             scope.launch {
                                 state = UpdateUiState.Downloading
-                                val apk = ChildUpdateDownloader.download(context, s.info.downloadUrl)
+                                val apk = ChildUpdateDownloader.download(
+                                    context, s.info.downloadUrl, s.info.versionTag
+                                )
                                 state = if (apk == null) {
                                     UpdateUiState.Error("download failed")
                                 } else {
-                                    UpdateUiState.Downloaded(s.info, apk, s.versions)
+                                    UpdateUiState.Downloaded(s.info, apk, s.stats)
                                 }
                             }
                         },
@@ -223,31 +275,15 @@ fun ChildUpdateSection(
                     )
                 }
                 is UpdateUiState.Downloaded -> {
-                    val targets = s.updatable()
+                    val targets = s.stats.updatable(s.info.versionTag)
                     NeumorphicButton(
                         text = context.getString(R.string.child_update_push, targets.size),
                         onClick = {
                             scope.launch {
-                                var ok = 0
-                                var failed = 0
-                                targets.forEachIndexed { index, device ->
-                                    state = UpdateUiState.Pushing(index, targets.size)
-                                    device.pairToken?.let { client.registerPairToken(device.deviceId, it) }
-                                    val pushed = client.uploadChildApk(
-                                        ip = device.ip.hostAddress ?: "",
-                                        port = device.port,
-                                        deviceId = device.deviceId,
-                                        apkFile = s.file
-                                    )
-                                    if (pushed) ok++ else failed++
-                                }
-                                val keptFile = if (failed == 0) {
-                                    s.file.delete()
-                                    null
-                                } else {
-                                    s.file
-                                }
-                                state = UpdateUiState.Done(ok, failed, keptFile)
+                                pushFile(
+                                    s.file, targets,
+                                    GitHubReleaseChecker.cleanTag(s.info.versionTag)
+                                )
                             }
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -261,13 +297,25 @@ fun ChildUpdateSection(
                     )
                 }
                 is UpdateUiState.Done -> {
-                    if (s.failed > 0 && s.file != null && s.file.exists()) {
+                    if (s.file != null && s.file.exists()) {
                         NeumorphicButton(
-                            text = stringResource(R.string.child_update_retry_push),
+                            text = stringResource(R.string.child_update_push_again),
                             onClick = {
                                 scope.launch {
-                                    state = UpdateUiState.Checking
-                                    state = checkForUpdate()
+                                    val current = fetchStats()
+                                    // Push again (same file, no download) to devices
+                                    // still not on the confirmed version.
+                                    val retryTargets = devices.filter { device ->
+                                        val v = current[device.deviceId]?.version
+                                        v == null || GitHubReleaseChecker.isNewerVersion(
+                                            s.latestTag, v
+                                        )
+                                    }
+                                    pushFile(
+                                        s.file,
+                                        retryTargets.ifEmpty { devices },
+                                        s.latestTag
+                                    )
                                 }
                             },
                             modifier = Modifier.fillMaxWidth()
@@ -288,6 +336,7 @@ fun ChildUpdateSection(
                 }
                 UpdateUiState.Checking,
                 UpdateUiState.Downloading,
+                UpdateUiState.Verifying,
                 is UpdateUiState.Pushing -> {
                     // Busy — no buttons until the step finishes.
                 }
@@ -296,18 +345,29 @@ fun ChildUpdateSection(
     }
 }
 
-private fun Map<String, String?>.toDeviceLines(
+private fun Map<String, DeviceVersion>.toDeviceLines(
     devices: List<ChildDevice>,
     context: android.content.Context,
-    latestTag: String
-): List<String> = devices.map { device ->
-    val name = device.customName.ifBlank { device.name }.ifBlank { device.deviceId }
-    when (val installed = get(device.deviceId)) {
-        null -> context.getString(R.string.child_update_device_offline, name)
-        else -> if (GitHubReleaseChecker.isNewerVersion(latestTag, installed)) {
-            context.getString(R.string.child_update_device_needs, name, installed)
-        } else {
-            context.getString(R.string.child_update_device_current, name, installed)
+    latestTag: String? = null
+): List<String> {
+    val lines = mutableListOf<String>()
+    devices.forEach { device ->
+        val name = device.customName.ifBlank { device.name }.ifBlank { device.deviceId }
+        val dv = get(device.deviceId)
+        val versionLine = when (val installed = dv?.version) {
+            null -> context.getString(R.string.child_update_device_offline, name)
+            else -> if (latestTag != null &&
+                GitHubReleaseChecker.isNewerVersion(latestTag, installed)
+            ) {
+                context.getString(R.string.child_update_device_needs, name, installed)
+            } else {
+                context.getString(R.string.child_update_device_current, name, installed)
+            }
+        }
+        lines.add(versionLine)
+        dv?.updateResult?.takeIf { it.isNotBlank() }?.let { result ->
+            lines.add(context.getString(R.string.child_update_install_result, name, result))
         }
     }
+    return lines
 }

@@ -26,6 +26,7 @@ class ApkInstallReceiver : BroadcastReceiver() {
                     @Suppress("DEPRECATION")
                     intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
                 }
+                saveResult(context, "WAITING FOR CONFIRMATION ON DEVICE")
                 try {
                     confirm?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     context.startActivity(confirm)
@@ -33,10 +34,29 @@ class ApkInstallReceiver : BroadcastReceiver() {
                     Log.e("ApkInstallReceiver", "Cannot show install confirmation", e)
                 }
             }
-            PackageInstaller.STATUS_SUCCESS ->
+            PackageInstaller.STATUS_SUCCESS -> {
+                // Runs inside the NEWLY installed app: report its version.
+                val version = runCatching { com.parentalguard.child.BuildConfig.VERSION_NAME }
+                    .getOrNull() ?: "?"
+                saveResult(context, "OK $version")
                 Log.i("ApkInstallReceiver", "Child update installed")
-            else ->
-                Log.e("ApkInstallReceiver", "Child update failed ($status): $message")
+            }
+            else -> {
+                val reason = "FAIL ($status): ${(message ?: "unknown").take(120)}"
+                saveResult(context, reason)
+                Log.e("ApkInstallReceiver", "Child update failed: $reason")
+            }
         }
+    }
+
+    companion object {
+        fun saveResult(context: Context, text: String) {
+            context.getSharedPreferences("update_prefs", Context.MODE_PRIVATE)
+                .edit().putString("last_update_result", text).apply()
+        }
+
+        fun lastResult(context: Context): String? =
+            context.getSharedPreferences("update_prefs", Context.MODE_PRIVATE)
+                .getString("last_update_result", null)
     }
 }

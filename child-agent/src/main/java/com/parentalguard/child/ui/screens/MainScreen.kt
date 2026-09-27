@@ -223,7 +223,7 @@ fun MainScreen(
                 Spacer(modifier = Modifier.weight(1f))
 
                 Text(
-                    text = stringResource(R.string.service_version),
+                    text = "Kid Guard v${com.parentalguard.child.BuildConfig.VERSION_NAME} (${com.parentalguard.child.BuildConfig.VERSION_CODE})",
                     style = MaterialTheme.typography.labelSmall,
                     color = NeumorphicOnSurfaceMuted.copy(alpha = 0.5f)
                 )

@@ -76,7 +76,8 @@ data class DeviceStats(
     val blockingScreenStyle: BlockingScreenStyle? = null,
     val childAppVersionName: String? = null, // Child APK versionName (for parent-pushed updates)
     val childAppVersionCode: Int = 0, // Child APK versionCode (for parent-pushed updates)
-    val childPinSet: Boolean = false // Whether the child protection PIN is set
+    val childPinSet: Boolean = false, // Whether the child protection PIN is set
+    val updateResult: String? = null // Last parent-pushed install outcome ("OK x.y.z" / "FAIL ...")
 )
 
 @Serializable

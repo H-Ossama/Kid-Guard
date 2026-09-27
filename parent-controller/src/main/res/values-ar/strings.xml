@@ -551,6 +551,10 @@
     <string name="child_update_device_offline">• %1$s: غير متوصل دابا</string>
     <string name="child_update_all_current">جميع الأجهزة المزاوجة محدثة.</string>
     <string name="child_update_retry_push">عاود شوف النسخ</string>
+    <string name="child_update_verifying">كنتأكدو من النسخ فالأجهزة…</string>
+    <string name="child_update_cached">%1$s تحمّلات من قبل — ما كاين لاش تعاود التحميل</string>
+    <string name="child_update_install_result">نتيجة التثبيت فـ %1$s: %2$s</string>
+    <string name="child_update_push_again">صيفط عاود (بلا تحميل)</string>
     <string name="child_update_downloading">كنحمّلو التحديث…</string>
     <string name="child_update_pushing">كنصيفطو لجهاز الولد… (خليهم على نفس الواي فاي)</string>
     <string name="child_update_success">تصيفط التحديث — الولد كيثبتو بوحدو (Owner) ولا كيطلب التأكيد</string>
