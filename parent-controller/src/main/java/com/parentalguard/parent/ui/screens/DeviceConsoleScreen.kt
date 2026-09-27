@@ -426,7 +426,20 @@ private fun NowSegment(
                 backgroundColor = (if (isLocked) Nm.danger else Nm.primary).copy(alpha = 0.05f)
             ) {
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    BreathingShield(locked = isLocked)
+                    Box(contentAlignment = Alignment.Center) {
+                        BreathingShield(locked = isLocked)
+                        // Reactivate requests: clears the child's 15-minute
+                        // request cooldown so it can ask again immediately.
+                        NeumorphicIconTile(
+                            icon = Icons.Default.NotificationsActive,
+                            tint = Nm.warning,
+                            size = 40.dp,
+                            iconSize = 18.dp,
+                            onClick = { viewModel.resetRequestCooldown(device) },
+                            contentDescription = stringResource(R.string.request_allow_new),
+                            modifier = Modifier.align(Alignment.BottomEnd)
+                        )
+                    }
                     Spacer(Modifier.height(14.dp))
                     NeumorphicStatusPill(
                         text = if (isLocked) stringResource(R.string.console_shield_engaged) else stringResource(R.string.console_at_ease),
