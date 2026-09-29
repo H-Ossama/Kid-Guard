@@ -43,8 +43,8 @@ android {
         applicationId = "com.parentalguard.controller"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "3.0.2"
+        versionCode = 5
+        versionName = "3.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.ui.res.stringResource
 import com.parentalguard.child.R
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -175,7 +176,11 @@ fun MainScreen(
                                 Image(
                                     bitmap = qrBitmap.asImageBitmap(),
                                     contentDescription = stringResource(R.string.qr_code_content_description),
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .background(androidx.compose.ui.graphics.Color.White)
+                                        .padding(8.dp),
                                     contentScale = ContentScale.Fit
                                 )
                             } else {

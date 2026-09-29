@@ -91,6 +91,68 @@ class DiscoveryViewModel(application: Application) : AndroidViewModel(applicatio
         startDiscovery()
         // Discover Bluetooth children to fill in their MACs for the BT fallback tier
         autoBluetoothDiscoveryJob = startBluetoothDiscoveryInternal()
+        // Fast online/offline presence heartbeat for every known device
+        startPresencePolling()
+    }
+
+    private var presencePollJob: Job? = null
+
+    /**
+     * Pings every known device every [PRESENCE_POLL_MS] so the online/offline
+     * indicator stays fresh without a manual refresh. Uses the lightweight
+     * /ping probe (direct → Bluetooth → relay) instead of full stats, and
+     * merges the result into the existing summary so last-known details
+     * (battery, screen time) survive short dropouts.
+     */
+    fun startPresencePolling() {
+        if (presencePollJob?.isActive == true) return
+        presencePollJob = viewModelScope.launch {
+            while (isActive) {
+                runCatching { pollPresenceOnce() }
+                delay(PRESENCE_POLL_MS)
+            }
+        }
+    }
+
+    private suspend fun pollPresenceOnce() {
+        val snapshot = _devices.value
+        if (snapshot.isEmpty()) return
+        val results = coroutineScope {
+            snapshot.map { device ->
+                async(Dispatchers.IO) {
+                    val ip = device.ip.hostAddress ?: ""
+                    val ping = runCatching {
+                        deviceClient.pingWithConnectionType(ip, device.port, device.deviceId)
+                    }.getOrNull()
+                    val reachable = ping?.response == true
+                    device.deviceId to (reachable to (ping?.connectionType ?: ConnectionType.UNKNOWN))
+                }
+            }.awaitAll()
+        }
+        val now = System.currentTimeMillis()
+        val merged = _deviceStatuses.value.toMutableMap()
+        var changed = false
+        for ((deviceId, presence) in results) {
+            val (reachable, type) = presence
+            val existing = merged[deviceId] ?: DeviceStatusSummary()
+            val updated = if (reachable) {
+                existing.copy(isOnline = true, connectionType = type, lastUpdate = now)
+            } else {
+                // Only flip to offline: never wipe the last-known stats, and
+                // never mark unknown a device we never successfully polled.
+                if (!existing.isOnline && existing.lastUpdate == 0L) continue
+                existing.copy(isOnline = false, connectionType = ConnectionType.UNKNOWN)
+            }
+            if (updated != existing) {
+                merged[deviceId] = updated
+                changed = true
+            }
+        }
+        if (changed) _deviceStatuses.value = merged
+    }
+
+    companion object {
+        private const val PRESENCE_POLL_MS = 15_000L
     }
 
     private fun loadSavedDevices() {
@@ -244,6 +306,13 @@ class DiscoveryViewModel(application: Application) : AndroidViewModel(applicatio
                 val mac = runCatching { btDevice.address }.getOrNull() ?: return@collect
 
                 deviceClient.registerBluetoothMac(deviceId, mac)
+
+                // One-time OS bond so the child stays reachable by MAC even
+                // when it is not discoverable and its Wi-Fi is off. No-op
+                // when already bonded; otherwise the system pairing dialog
+                // appears once — accept it during setup and the offline
+                // fallback works silently forever after.
+                runCatching { bluetoothClient.bondDevice(mac) }
 
                 if (index != -1) {
                     val current = currentList[index]

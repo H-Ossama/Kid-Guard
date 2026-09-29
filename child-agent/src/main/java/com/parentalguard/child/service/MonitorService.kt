@@ -40,6 +40,13 @@ class MonitorService : Service() {
     private var lockManager: com.parentalguard.child.ui.LockManager? = null
     private var bluetoothServer: com.parentalguard.child.network.BluetoothCommandServer? = null
     private val bluetoothServerLock = Any()
+    /**
+     * Guards the one-time monitors. onStartCommand runs on every start
+     * request — without this, each re-start spawned duplicate usage loops,
+     * duplicate lock-state collectors and fresh LockManagers, leaving stale
+     * overlay windows no manager would ever dismiss (zombie lock screen).
+     */
+    private var monitoringStarted = false
 
     private val bluetoothStateReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -133,24 +140,50 @@ class MonitorService : Service() {
         // clear a forgotten system PIN/pattern later. Must happen before it
         // is ever needed — hence on every service start, including boot.
         runCatching { DeviceOwnerManager.escrowResetPasswordToken(this) }
+        // Heal a stale shade lock (e.g. reboot while locked, then unlocked
+        // remotely before the service restarted): the status-bar state must
+        // always mirror the persisted global lock.
+        runCatching {
+            DeviceOwnerManager.setStatusBarDisabled(
+                this,
+                com.parentalguard.child.data.RuleRepository.globalLock.value
+            )
+        }
+        // Re-apply parent-requested manual suspends: the OS may drop the
+        // suspended flag across reboots while our tracked set persists.
+        runCatching {
+            if (DeviceOwnerManager.isDeviceOwner(this)) {
+                com.parentalguard.child.data.RuleRepository.deviceOwnerManualSuspended.value.forEach { pkg ->
+                    DeviceOwnerManager.setAppSuspended(this, pkg, true)
+                }
+            }
+        }
         // Keep the persisted rescue/watchdog armed so protection survives
         // reboots and process kills even if the boot receiver was skipped.
         runCatching { BootRescueJobService.schedule(this) }
-        startForeground()
-        lockManager = com.parentalguard.child.ui.LockManager(applicationContext)
-        startUsageMonitoring() // Coroutine
-        startLockMonitoring() // New Coroutine for Lock State
-        
-        // Register Internal Receiver
-        val filter = android.content.IntentFilter("com.parentalguard.child.INTERNAL_EVENT")
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-             // For internal broadcasts, we can use RECEIVER_NOT_EXPORTED
-             registerReceiver(internalReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-             // Or verify package in onReceive?
-             // But for internal broadcasts, usually LocalBroadcastManager was preferred.
-             // Since we use sendBroadcast(intent.setPackage(...)), it is explicit.
-             registerReceiver(internalReceiver, filter)
+        // One-time monitors: re-running these per start command duplicated
+        // the usage loop, the lock collector and the LockManager itself.
+        // Everything below is safe to run once per service instance; the
+        // idempotent sync work above (VPN, escrow, shade heal, suspend
+        // re-apply) still runs on every start.
+        if (!monitoringStarted) {
+            monitoringStarted = true
+            startForeground()
+            lockManager = com.parentalguard.child.ui.LockManager(applicationContext)
+            startUsageMonitoring() // Coroutine
+            startLockMonitoring() // New Coroutine for Lock State
+
+            // Register Internal Receiver
+            val filter = android.content.IntentFilter("com.parentalguard.child.INTERNAL_EVENT")
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                 // For internal broadcasts, we can use RECEIVER_NOT_EXPORTED
+                 registerReceiver(internalReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                 // Or verify package in onReceive?
+                 // But for internal broadcasts, usually LocalBroadcastManager was preferred.
+                 // Since we use sendBroadcast(intent.setPackage(...)), it is explicit.
+                 registerReceiver(internalReceiver, filter)
+            }
         }
         
 if (!::commandServer.isInitialized) {
@@ -196,9 +229,17 @@ if (!::commandServer.isInitialized) {
                     if (isLocked) {
                         Log.d("MonitorService", "Global Lock Enabled")
                         lockManager?.showLockScreen()
+                        // OS-level shade lock on managed devices: the overlay
+                        // alone cannot cover SystemUI (see DeviceOwnerManager).
+                        runCatching {
+                            DeviceOwnerManager.setStatusBarDisabled(applicationContext, true)
+                        }
                     } else {
                         Log.d("MonitorService", "Global Lock Disabled")
                         lockManager?.hideLockScreen()
+                        runCatching {
+                            DeviceOwnerManager.setStatusBarDisabled(applicationContext, false)
+                        }
                     }
                 }
             }
@@ -265,11 +306,16 @@ if (!::commandServer.isInitialized) {
                     if (!usagePolicyActive && (
                             ruleRepo.deviceOwnerDeviceUsageLimitMs.value > 0 ||
                                 ruleRepo.deviceOwnerAppUsageLimits.value.isNotEmpty() ||
-                                ruleRepo.deviceOwnerUsageSuspended.value.isNotEmpty()
+                                ruleRepo.deviceOwnerUsageSuspended.value.isNotEmpty() ||
+                                ruleRepo.deviceOwnerManualSuspended.value.isNotEmpty()
                         )) {
                         if (isDeviceOwner) {
-                            ruleRepo.deviceOwnerUsageSuspended.value.forEach { packageName ->
-                                DeviceOwnerManager.setAppSuspended(applicationContext, packageName, false)
+                            (ruleRepo.deviceOwnerUsageSuspended.value +
+                                ruleRepo.deviceOwnerManualSuspended.value).forEach { packageName ->
+                                if (DeviceOwnerManager.setAppSuspended(applicationContext, packageName, false).success) {
+                                    ruleRepo.markDeviceOwnerUsageSuspended(packageName, false)
+                                    ruleRepo.markDeviceOwnerManualSuspended(packageName, false)
+                                }
                             }
                         }
                         ruleRepo.clearDeviceOwnerPolicies()
@@ -379,20 +425,8 @@ if (!::commandServer.isInitialized) {
                         
                         // Global Lock
                         val globalLock = ruleRepo.globalLock.value
-                        
-                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                            if (shouldBlock || globalLock) {
-                                if (lockManager?.isShowing == false) {
-                                    Log.i("MonitorService", "Blocking app: $packageToEvaluate (Reason: ${if(globalLock) "Global Lock" else "App Rule/Timer"})")
-                                    lockManager?.showLockScreen()
-                                }
-                            } else {
-                                if (lockManager?.isShowing == true) {
-                                     Log.i("MonitorService", "Unblocking app: $packageToEvaluate")
-                                     lockManager?.hideLockScreen()
-                                }
-                            }
-                        }
+
+                        syncLockOverlay(shouldBlock, globalLock, packageToEvaluate, monitor)
                     } else if (packageToEvaluate == null) {
                         // If no package detected (e.g. permission missing), we might want to default to block if we are extra strict
                         // but for now let's just log it.
@@ -404,6 +438,83 @@ if (!::commandServer.isInitialized) {
                 delay(1000)
             }
         }
+    }
+
+    // Why the overlay is currently up: "GLOBAL" or the blocked package.
+    // Hopping to a neutral system surface (shade, Settings) must not
+    // clear it while the reason is still active.
+    private var overlayBlockReason: String? = null
+
+    /**
+     * Shows or hides the overlay lock screen on the main thread. A hop to a
+     * neutral surface (notification shade, Settings — which is deliberately
+     * whitelisted, our own package) never dismisses a still-active block.
+     */
+    private suspend fun syncLockOverlay(
+        shouldBlock: Boolean,
+        globalLock: Boolean,
+        packageToEvaluate: String?,
+        monitor: com.parentalguard.child.monitor.UsageMonitor
+    ) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+            if (shouldBlock || globalLock) {
+                overlayBlockReason = if (globalLock) "GLOBAL" else packageToEvaluate
+                if (lockManager?.isShowing == false) {
+                    val reasonLabel = if (globalLock) "Global Lock" else "App Rule/Timer"
+                    Log.i("MonitorService", "Blocking app: $packageToEvaluate (Reason: $reasonLabel)")
+                    lockManager?.showLockScreen()
+                }
+                return@withContext
+            }
+            val reason = overlayBlockReason
+            val foregroundIsNeutral = packageToEvaluate == null ||
+                packageToEvaluate == packageName ||
+                packageToEvaluate == "com.android.systemui" ||
+                packageToEvaluate == "com.android.settings"
+            val reasonStillActive = reason != null && reason != "GLOBAL" &&
+                isBlockActiveFor(reason, monitor)
+            if (lockManager?.isShowing == true && foregroundIsNeutral && reasonStillActive) {
+                Log.d("MonitorService", "Keeping lock over neutral surface: $packageToEvaluate (reason: $reason)")
+                return@withContext
+            }
+            overlayBlockReason = null
+            if (lockManager?.isShowing == true) {
+                Log.i("MonitorService", "Unblocking app: $packageToEvaluate")
+                lockManager?.hideLockScreen()
+            }
+        }
+    }
+
+    /**
+     * Re-evaluates whether [packageName] is currently blocked (mirrors the
+     * per-package checks in the monitoring loop). Used to decide if an
+     * overlay shown for that package must stay up when the foreground hops
+     * to a neutral surface such as Settings.
+     */
+    private fun isBlockActiveFor(packageName: String, monitor: com.parentalguard.child.monitor.UsageMonitor): Boolean {
+        val ruleRepo = com.parentalguard.child.data.RuleRepository
+        val rule = ruleRepo.rules.value.find { it.packageName == packageName }
+        if (rule != null) {
+            if (rule.isPermanentlyBlocked || rule.blockEndTime > System.currentTimeMillis()) return true
+            if (rule.maxDailyTimeMs > 0 && monitor.getAppUsageToday(packageName) >= rule.maxDailyTimeMs) {
+                return true
+            }
+        }
+        // An expired allowance timer re-blocks the app.
+        if (ruleRepo.appTimers.value.containsKey(packageName) &&
+            !ruleRepo.isAppTimerActive(packageName)
+        ) {
+            return true
+        }
+        val category = ruleRepo.getCategory(packageName)
+        if (ruleRepo.categoryTimers.value.containsKey(category) &&
+            !ruleRepo.isCategoryTimerActive(category)
+        ) {
+            return true
+        }
+        val ownerLimit = ruleRepo.deviceOwnerAppUsageLimits.value[packageName] ?: 0L
+        if (ownerLimit > 0 && monitor.getAppUsageToday(packageName) >= ownerLimit) return true
+        return false
     }
 
     private fun getForegroundPackage(): String? {

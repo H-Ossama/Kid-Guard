@@ -87,6 +87,16 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
     val deviceOwnerCapabilities: StateFlow<Map<String, DeviceOwnerCapabilities>> =
         _deviceOwnerCapabilities.asStateFlow()
 
+    private val _deviceOwnerSuspended =
+        MutableStateFlow<Map<String, Set<String>>>(emptyMap())
+    val deviceOwnerSuspended: StateFlow<Map<String, Set<String>>> =
+        _deviceOwnerSuspended.asStateFlow()
+
+    private val _deviceOwnerUninstallProtected =
+        MutableStateFlow<Map<String, Set<String>>>(emptyMap())
+    val deviceOwnerUninstallProtected: StateFlow<Map<String, Set<String>>> =
+        _deviceOwnerUninstallProtected.asStateFlow()
+
     private val _childPinSet = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     val childPinSet: StateFlow<Map<String, Boolean>> = _childPinSet.asStateFlow()
 
@@ -145,6 +155,10 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
                 _lockReason.value = response.stats?.lockReason
                 _deviceOwnerCapabilities.value = _deviceOwnerCapabilities.value +
                     (device.deviceId to (response.stats?.deviceOwnerCapabilities ?: DeviceOwnerCapabilities()))
+                _deviceOwnerSuspended.value = _deviceOwnerSuspended.value +
+                    (device.deviceId to (response.stats?.deviceOwnerSuspended ?: emptySet()))
+                _deviceOwnerUninstallProtected.value = _deviceOwnerUninstallProtected.value +
+                    (device.deviceId to (response.stats?.deviceOwnerUninstallProtected ?: emptySet()))
                 _blockingScreenStyles.value = _blockingScreenStyles.value +
                     (device.deviceId to (response.stats?.blockingScreenStyle ?: BlockingScreenStyle.CURRENT))
                 _childPinSet.value = _childPinSet.value +
@@ -171,6 +185,10 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
                 if (!isLatest) return@launch
                 _deviceOwnerCapabilities.value = _deviceOwnerCapabilities.value +
                     (device.deviceId to DeviceOwnerCapabilities())
+                _deviceOwnerSuspended.value = _deviceOwnerSuspended.value -
+                    device.deviceId
+                _deviceOwnerUninstallProtected.value = _deviceOwnerUninstallProtected.value -
+                    device.deviceId
                 _statusMessage.value = "Failed to fetch stats"
             }
         }
@@ -198,6 +216,12 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
                     _usageLogs.value = usageLogs
                     _usageLogsByDevice.value = _usageLogsByDevice.value +
                         (device.deviceId to usageLogs)
+                    _deviceOwnerCapabilities.value = _deviceOwnerCapabilities.value +
+                        (device.deviceId to (stats?.deviceOwnerCapabilities ?: DeviceOwnerCapabilities()))
+                    _deviceOwnerSuspended.value = _deviceOwnerSuspended.value +
+                        (device.deviceId to (stats?.deviceOwnerSuspended ?: emptySet()))
+                    _deviceOwnerUninstallProtected.value = _deviceOwnerUninstallProtected.value +
+                        (device.deviceId to (stats?.deviceOwnerUninstallProtected ?: emptySet()))
 
                     val newIcons = stats?.installedApps?.mapNotNull { app ->
                         if (app.iconBase64 != null) app.packageName to app.iconBase64!! else null
@@ -850,7 +874,10 @@ class DeviceControlViewModel(application: Application) : AndroidViewModel(applic
                 _statusMessage.value = successMessage
                 fetchStats(device, forceRefresh = true)
             } else {
-                _statusMessage.value = text(R.string.device_owner_command_failed)
+                // Surface the child's concrete reason (e.g. "Reset token not
+                // escrowed yet") instead of a generic failure toast.
+                _statusMessage.value = response?.message?.takeIf { it.isNotBlank() }
+                    ?: text(R.string.device_owner_command_failed)
             }
         }
     }

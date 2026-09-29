@@ -84,6 +84,7 @@ import com.parentalguard.parent.ui.onboarding.OnboardingManager
 import com.parentalguard.parent.ui.onboarding.OnboardingScreen
 import com.parentalguard.parent.ui.theme.ParentalGuardTheme
 import com.parentalguard.parent.ui.theme.DisplayFontFamily
+import com.parentalguard.parent.ui.theme.trackingFor
 import com.parentalguard.parent.viewmodel.ChildDevice
 import com.parentalguard.parent.viewmodel.DeviceControlViewModel
 import com.parentalguard.parent.viewmodel.DiscoveryViewModel
@@ -439,7 +440,7 @@ private fun AuraDock(
                         fontFamily = DisplayFontFamily,
                         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                         fontSize = 10.sp,
-                        letterSpacing = 0.1.sp,
+                        letterSpacing = trackingFor(0.1.sp),
                         maxLines = 1
                     )
                 }

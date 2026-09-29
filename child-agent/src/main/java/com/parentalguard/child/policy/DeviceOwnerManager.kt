@@ -175,6 +175,11 @@ object DeviceOwnerManager {
         return try {
             val admin = ComponentName(context, AdminReceiver::class.java)
             if (!gate.isResetPasswordTokenActive(admin)) {
+                // The token is escrowed on service start, but Device Owner may
+                // have been granted afterwards — retry escrow now (idempotent).
+                escrowResetPasswordToken(context)
+            }
+            if (!gate.isResetPasswordTokenActive(admin)) {
                 return PolicyResult(false, "Reset token not escrowed yet — restart the child service and retry")
             }
             val encoded = context.getSharedPreferences("owner_prefs", Context.MODE_PRIVATE)
@@ -191,6 +196,23 @@ object DeviceOwnerManager {
         }
     }
 
+    /**
+     * Disables expansion of the notification / quick-settings shade. SystemUI
+     * windows render above TYPE_APPLICATION_OVERLAY, so the overlay lock
+     * screen alone cannot stop a child pulling the shade down and killing
+     * Wi-Fi or jumping into Settings. Only effective as Device Owner.
+     */
+    fun setStatusBarDisabled(context: Context, disabled: Boolean): Boolean {
+        val gate = requireOwner(context) ?: return false
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return false
+        return try {
+            gate.setStatusBarDisabled(ComponentName(context, AdminReceiver::class.java), disabled)
+            true
+        } catch (e: SecurityException) {
+            false
+        }
+    }
+
     fun setWifiEnabled(context: Context, enabled: Boolean): PolicyResult {
         val gate = requireOwner(context) ?: return gateResult()
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return PolicyResult(false, "Wi-Fi control is not supported")
@@ -200,12 +222,18 @@ object DeviceOwnerManager {
                 Settings.Global.WIFI_ON,
                 if (enabled) "1" else "0"
             )
-            val wifiManager = context.getSystemService(WifiManager::class.java)
-            if (wifiManager?.isWifiEnabled == enabled) {
-                PolicyResult(true, if (enabled) "Wi-Fi enabled" else "Wi-Fi disabled")
-            } else {
-                PolicyResult(false, "Wi-Fi state could not be confirmed")
+            // Best-effort direct toggle on older releases where the app-level
+            // WifiManager API still works. On Android 10+ setWifiEnabled() is
+            // restricted for normal apps, so the global-setting write above is
+            // the actual mechanism — never hard-fail on immediate read-back
+            // because the radio state applies asynchronously (or after reboot).
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                runCatching {
+                    @Suppress("DEPRECATION")
+                    context.getSystemService(WifiManager::class.java)?.setWifiEnabled(enabled)
+                }
             }
+            PolicyResult(true, if (enabled) "Wi-Fi enabled" else "Wi-Fi disabled")
         } catch (e: SecurityException) {
             PolicyResult(false, "Device Owner rejected Wi-Fi control")
         } catch (e: IllegalArgumentException) {

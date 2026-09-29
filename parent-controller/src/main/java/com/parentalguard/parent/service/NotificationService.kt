@@ -40,6 +40,8 @@ class NotificationService : Service() {
         private const val EXTRA_PORT = "extra_port"
         private const val EXTRA_NAME = "extra_name"
         private const val EXTRA_DEVICE_ID = "extra_device_id"
+        private const val EXTRA_PAIR_TOKEN = "extra_pair_token"
+        private const val EXTRA_BT_MAC = "extra_bt_mac"
 
         fun startMonitoring(context: Context, device: ChildDevice) {
             val intent = Intent(context, NotificationService::class.java).apply {
@@ -48,6 +50,8 @@ class NotificationService : Service() {
                 putExtra(EXTRA_PORT, device.port)
                 putExtra(EXTRA_NAME, device.customName)
                 putExtra(EXTRA_DEVICE_ID, device.deviceId)
+                putExtra(EXTRA_PAIR_TOKEN, device.pairToken)
+                putExtra(EXTRA_BT_MAC, device.bluetoothMac)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
@@ -69,17 +73,27 @@ class NotificationService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        // Foreground promotion FIRST: Android kills the process with
+        // ForegroundServiceDidNotStartInTimeException if startForeground()
+        // isn't reached within seconds of startForegroundService(). Cold
+        // start (especially right after an update, while dexopt hogs the
+        // main thread) can stall everything below past that deadline.
+        createNotificationChannel()
+        startForeground(1, createNotification())
         deviceClient = DeviceClient(this)
         deviceRepository = DeviceRepository(this)
         loadSavedDevices()
-        createNotificationChannel()
-        startForeground(1, createNotification())
     }
 
     private fun loadSavedDevices() {
         val saved = deviceRepository.loadDevices()
         saved.forEach { device ->
             knownDevices[device.deviceId] = device
+            // The service owns a separate DeviceClient: register credentials
+            // here too or every request (events socket included) is rejected
+            // as Unauthorized on paired children.
+            device.pairToken?.let { deviceClient.registerPairToken(device.deviceId, it) }
+            device.bluetoothMac?.let { deviceClient.registerBluetoothMac(device.deviceId, it) }
             observeDeviceEvents(device) // Start monitoring on service startup
         }
     }
@@ -93,11 +107,18 @@ class NotificationService : Service() {
             val port = intent.getIntExtra(EXTRA_PORT, 0)
             val name = intent.getStringExtra(EXTRA_NAME) ?: "Unknown"
             val deviceId = intent.getStringExtra(EXTRA_DEVICE_ID)
+            val pairToken = intent.getStringExtra(EXTRA_PAIR_TOKEN)
+            val btMac = intent.getStringExtra(EXTRA_BT_MAC)
 
             if (ip != null && port != 0 && deviceId != null) {
                  try {
-                     val device = ChildDevice(deviceId = deviceId, name = name, ip = InetAddress.getByName(ip), port = port, customName = name)
+                     val device = ChildDevice(
+                         deviceId = deviceId, name = name, ip = InetAddress.getByName(ip), port = port,
+                         customName = name, bluetoothMac = btMac, pairToken = pairToken
+                     )
                      knownDevices[deviceId] = device // Update or add
+                     pairToken?.let { deviceClient.registerPairToken(deviceId, it) }
+                     btMac?.let { deviceClient.registerBluetoothMac(deviceId, it) }
                      observeDeviceEvents(device)
                  } catch (e: Exception) {
                      Log.e("NotificationService", "Error adding device", e)

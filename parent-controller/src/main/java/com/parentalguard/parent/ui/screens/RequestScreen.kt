@@ -121,7 +121,7 @@ fun RequestScreen(
                         focusedTextColor = Nm.onSurface,
                         unfocusedTextColor = Nm.onSurface,
                         focusedBorderColor = Nm.primary,
-                        unfocusedBorderColor = Nm.darkShadow.copy(alpha = 0.25f),
+                        unfocusedBorderColor = Nm.fieldBorder,
                         focusedLabelColor = Nm.primary,
                         unfocusedLabelColor = Nm.onSurfaceMuted,
                         focusedContainerColor = Nm.surface,

@@ -72,6 +72,7 @@ import com.parentalguard.parent.ui.neumorphic.NeumorphicIconTile
 import com.parentalguard.parent.ui.neumorphic.NeumorphicSwitch
 import com.parentalguard.parent.ui.neumorphic.neumorphic
 import com.parentalguard.parent.ui.theme.ThemePreferences
+import com.parentalguard.parent.ui.theme.trackingFor
 import java.util.Locale
 
 @Composable
@@ -162,7 +163,7 @@ fun ControlScreen(
                         text = stringResource(R.string.child_update_title).uppercase(),
                         color = Nm.onSurfaceMuted,
                         style = MaterialTheme.typography.labelSmall,
-                        letterSpacing = 1.4.sp,
+                        letterSpacing = trackingFor(1.4.sp),
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(start = 6.dp, bottom = 8.dp)
                     )
@@ -300,7 +301,7 @@ fun ControlScreen(
 
 @Composable
 private fun NmDivider() {
-    Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(1.dp).background(Nm.darkShadow.copy(alpha = 0.18f)))
+    Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(1.dp).background(Nm.divider))
 }
 
 @Composable
@@ -314,7 +315,7 @@ private fun ControlGroup(
             text = title.uppercase(),
             color = Nm.onSurfaceMuted,
             style = MaterialTheme.typography.labelSmall,
-            letterSpacing = 1.4.sp,
+            letterSpacing = trackingFor(1.4.sp),
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(start = 6.dp, bottom = 8.dp)
         )
@@ -383,7 +384,8 @@ private fun ControlSwitchRow(
 private fun currentLanguageName(): String {
     val locale = AppCompatDelegate.getApplicationLocales().get(0) ?: Locale.getDefault()
     return when (locale.language) {
-        "ar" -> stringResource(R.string.language_darija)
+        "ar" -> stringResource(R.string.language_arabic)
+        "fr" -> stringResource(R.string.language_french)
         else -> stringResource(R.string.language_english)
     }
 }
@@ -401,7 +403,11 @@ private fun NmLanguageDialog(
         title = { Text(stringResource(R.string.settings_language), color = Nm.onSurface, fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                listOf("en" to R.string.language_english, "ar" to R.string.language_darija).forEach { (code, labelRes) ->
+                listOf(
+                    "en" to R.string.language_english,
+                    "ar" to R.string.language_arabic,
+                    "fr" to R.string.language_french
+                ).forEach { (code, labelRes) ->
                     val selected = code == currentCode
                     Row(
                         modifier = Modifier
@@ -443,8 +449,6 @@ private fun NmThemeDialog(
     onDismiss: () -> Unit,
     onThemeSelected: (ThemePreferences.ThemeMode) -> Unit
 ) {
-    var showComingSoon by remember { mutableStateOf(false) }
-
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(28.dp),
@@ -464,10 +468,7 @@ private fun NmThemeDialog(
                                 pressed = selected
                             )
                             .clip(RoundedCornerShape(18.dp))
-                            .clickable {
-                                if (mode == ThemePreferences.ThemeMode.DARK) showComingSoon = true
-                                else onThemeSelected(mode)
-                            }
+                            .clickable { onThemeSelected(mode) }
                             .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -489,31 +490,6 @@ private fun NmThemeDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel), color = Nm.onSurfaceMuted) }
         }
     )
-
-    if (showComingSoon) {
-        AlertDialog(
-            onDismissRequest = { showComingSoon = false },
-            shape = RoundedCornerShape(28.dp),
-            containerColor = Nm.surface,
-            title = { Text(stringResource(R.string.dark_mode_title), color = Nm.onSurface, fontWeight = FontWeight.Bold) },
-            text = {
-                Text(
-                    stringResource(R.string.dark_mode_coming_soon),
-                    color = Nm.onSurfaceMuted,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            },
-            confirmButton = {
-                NeumorphicButton(
-                    text = stringResource(R.string.got_it),
-                    onClick = { showComingSoon = false }
-                )
-            },
-            dismissButton = {
-                TextButton(onClick = { showComingSoon = false }) { Text(stringResource(R.string.cancel), color = Nm.onSurfaceMuted) }
-            }
-        )
-    }
 }
 
 @Composable
@@ -551,7 +527,7 @@ private fun PinSetupDialog(
                         focusedTextColor = Nm.onSurface,
                         unfocusedTextColor = Nm.onSurface,
                         focusedBorderColor = Nm.primary,
-                        unfocusedBorderColor = Nm.darkShadow.copy(alpha = 0.5f),
+                        unfocusedBorderColor = Nm.fieldBorder,
                         focusedContainerColor = Nm.inset,
                         unfocusedContainerColor = Nm.inset,
                         focusedLabelColor = Nm.primary,
@@ -573,7 +549,7 @@ private fun PinSetupDialog(
                         focusedTextColor = Nm.onSurface,
                         unfocusedTextColor = Nm.onSurface,
                         focusedBorderColor = Nm.primary,
-                        unfocusedBorderColor = Nm.darkShadow.copy(alpha = 0.5f),
+                        unfocusedBorderColor = Nm.fieldBorder,
                         focusedContainerColor = Nm.inset,
                         unfocusedContainerColor = Nm.inset,
                         focusedLabelColor = Nm.primary,

@@ -68,6 +68,8 @@ object RuleRepository {
             _deviceOwnerDeviceUsageLimitMs.value = manager.loadOwnerDeviceUsageLimit()
             _deviceOwnerAppUsageLimits.value = manager.loadOwnerAppUsageLimits()
             _deviceOwnerUsageSuspended.value = manager.loadOwnerUsageSuspended()
+            _deviceOwnerManualSuspended.value = manager.loadOwnerManualSuspended()
+            _deviceOwnerUninstallProtected.value = manager.loadOwnerUninstallProtected()
         }
     }
 
@@ -161,13 +163,35 @@ object RuleRepository {
         persistentStateManager?.saveOwnerUsageSuspended(packages)
     }
 
+    private val _deviceOwnerManualSuspended = MutableStateFlow<Set<String>>(emptySet())
+    val deviceOwnerManualSuspended: StateFlow<Set<String>> = _deviceOwnerManualSuspended.asStateFlow()
+
+    fun markDeviceOwnerManualSuspended(packageName: String, suspended: Boolean) {
+        val packages = _deviceOwnerManualSuspended.value.toMutableSet()
+        if (suspended) packages.add(packageName) else packages.remove(packageName)
+        _deviceOwnerManualSuspended.value = packages
+        persistentStateManager?.saveOwnerManualSuspended(packages)
+    }
+
+    private val _deviceOwnerUninstallProtected = MutableStateFlow<Set<String>>(emptySet())
+    val deviceOwnerUninstallProtected: StateFlow<Set<String>> = _deviceOwnerUninstallProtected.asStateFlow()
+
+    fun markDeviceOwnerUninstallProtected(packageName: String, enabled: Boolean) {
+        val packages = _deviceOwnerUninstallProtected.value.toMutableSet()
+        if (enabled) packages.add(packageName) else packages.remove(packageName)
+        _deviceOwnerUninstallProtected.value = packages
+        persistentStateManager?.saveOwnerUninstallProtected(packages)
+    }
+
     fun clearDeviceOwnerPolicies() {
         _deviceOwnerDeviceUsageLimitMs.value = 0L
         _deviceOwnerAppUsageLimits.value = emptyMap()
         _deviceOwnerUsageSuspended.value = emptySet()
+        _deviceOwnerManualSuspended.value = emptySet()
         persistentStateManager?.saveOwnerDeviceUsageLimit(0L)
         persistentStateManager?.saveOwnerAppUsageLimits(emptyMap())
         persistentStateManager?.saveOwnerUsageSuspended(emptySet())
+        persistentStateManager?.saveOwnerManualSuspended(emptySet())
     }
 
     fun setBreakRules(limit: Long, duration: Long, warningMs: Long = 0, educationOnly: Boolean = false, allowExtensions: Boolean = false) {

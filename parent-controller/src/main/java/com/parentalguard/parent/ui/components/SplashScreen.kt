@@ -50,6 +50,7 @@ import com.parentalguard.parent.ui.neumorphic.NeumorphicBackground
 import com.parentalguard.parent.ui.neumorphic.neumorphic
 import com.parentalguard.parent.ui.theme.DisplayFontFamily
 import com.parentalguard.parent.ui.theme.MonoFontFamily
+import com.parentalguard.parent.ui.theme.trackingFor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -140,7 +141,7 @@ fun SplashScreen(onFinished: () -> Unit) {
                         fontFamily = DisplayFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
-                        letterSpacing = 2.2.sp
+                        letterSpacing = trackingFor(2.2.sp)
                     )
                     Spacer(Modifier.weight(1f))
                     Text(
@@ -148,7 +149,7 @@ fun SplashScreen(onFinished: () -> Unit) {
                         color = Nm.onSurfaceMuted,
                         fontFamily = MonoFontFamily,
                         fontSize = 9.sp,
-                        letterSpacing = 1.2.sp
+                        letterSpacing = trackingFor(1.2.sp)
                     )
                 }
 
@@ -239,14 +240,14 @@ fun SplashScreen(onFinished: () -> Unit) {
                         fontFamily = DisplayFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 28.sp,
-                        letterSpacing = 5.sp
+                        letterSpacing = trackingFor(5.sp)
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
                         text = stringResource(R.string.splash_tagline),
                         color = Nm.onSurfaceMuted,
                         style = MaterialTheme.typography.bodyMedium,
-                        letterSpacing = 0.2.sp
+                        letterSpacing = trackingFor(0.2.sp)
                     )
                 }
 
@@ -266,7 +267,7 @@ fun SplashScreen(onFinished: () -> Unit) {
                             color = Nm.onSurfaceMuted,
                             fontFamily = MonoFontFamily,
                             fontSize = 10.sp,
-                            letterSpacing = 1.1.sp
+                            letterSpacing = trackingFor(1.1.sp)
                         )
                         Spacer(Modifier.weight(1f))
                         Text(

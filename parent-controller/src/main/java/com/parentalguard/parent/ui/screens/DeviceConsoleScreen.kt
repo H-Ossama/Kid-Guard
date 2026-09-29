@@ -134,7 +134,6 @@ import com.parentalguard.parent.ui.neumorphic.NeumorphicBars
 import com.parentalguard.parent.ui.neumorphic.NeumorphicButton
 import com.parentalguard.parent.ui.neumorphic.NeumorphicCard
 import com.parentalguard.parent.ui.neumorphic.NeumorphicChip
-import com.parentalguard.parent.ui.neumorphic.NeumorphicConnectionPill
 import com.parentalguard.parent.ui.neumorphic.NeumorphicDonut
 import com.parentalguard.parent.ui.neumorphic.NeumorphicDuration
 import com.parentalguard.parent.ui.neumorphic.NeumorphicIconTile
@@ -154,11 +153,14 @@ import com.parentalguard.parent.ui.neumorphic.neumorphic
 import com.parentalguard.parent.ui.neumorphic.rememberNmPress
 import com.parentalguard.parent.ui.theme.MonoFontFamily
 import com.parentalguard.parent.ui.theme.getCategoryColor
+import com.parentalguard.parent.ui.theme.trackingFor
 import com.parentalguard.parent.viewmodel.ChildDevice
 import com.parentalguard.parent.viewmodel.ConnectionType
 import com.parentalguard.parent.viewmodel.DeviceControlViewModel
+import com.parentalguard.parent.viewmodel.DeviceStatusSummary
 import com.parentalguard.parent.viewmodel.DiscoveryViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 private const val GOAL_MS = 8L * 60 * 60 * 1000
@@ -186,6 +188,8 @@ fun DeviceConsoleScreen(
     val blockingScreenStyles by viewModel.blockingScreenStyles.collectAsState()
     val blockingScreenStyleSaves by viewModel.blockingScreenStyleSaves.collectAsState()
     val deviceOwnerCapabilities by viewModel.deviceOwnerCapabilities.collectAsState()
+    val deviceOwnerSuspended by viewModel.deviceOwnerSuspended.collectAsState()
+    val deviceOwnerUninstallProtected by viewModel.deviceOwnerUninstallProtected.collectAsState()
     val childPinSetByDevice by viewModel.childPinSet.collectAsState()
     val pinProtectionByDevice by viewModel.pinProtection.collectAsState()
     val isChildPinSet = childPinSetByDevice[device.deviceId] ?: false
@@ -196,6 +200,14 @@ fun DeviceConsoleScreen(
         blockingScreenStyles[device.deviceId] ?: BlockingScreenStyle.CURRENT
     val isBlockingScreenStyleSaving = device.deviceId in blockingScreenStyleSaves
     val selectedUsageLogs = usageLogsByDevice[device.deviceId] ?: emptyList()
+    // Live presence from the 15 s heartbeat (DiscoveryViewModel). Falls back
+    // to this console's own connection probe when the discovery VM is absent.
+    val presenceFallback = remember { MutableStateFlow(emptyMap<String, DeviceStatusSummary>()) }
+    val presenceMap by (discoveryViewModel?.deviceStatuses ?: presenceFallback).collectAsState()
+    val presence = presenceMap[device.deviceId]
+    val deviceOnline = presence?.isOnline ?: (connectionType != ConnectionType.UNKNOWN)
+    val deviceTransport = presence?.connectionType?.takeIf { it != ConnectionType.UNKNOWN }
+        ?: connectionType
 
     val pagerState = rememberPagerState(pageCount = { consoleSegments.size })
     val scope = rememberCoroutineScope()
@@ -294,22 +306,25 @@ fun DeviceConsoleScreen(
                          }
                     }
                     Spacer(Modifier.height(3.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        NeumorphicStatusDot(
-                            if (connectionType != ConnectionType.UNKNOWN) Nm.success else Nm.onSurfaceMuted,
-                            dotSize = 5.dp
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        if (connectionType != ConnectionType.UNKNOWN) {
-                            NeumorphicConnectionPill(connectionType)
+                    // Glanceable presence: green ONLINE (with transport) / red OFFLINE.
+                    NeumorphicStatusPill(
+                        text = if (deviceOnline) {
+                            val label = when (deviceTransport) {
+                                ConnectionType.LOCAL -> stringResource(R.string.connection_local)
+                                ConnectionType.BLUETOOTH -> stringResource(R.string.status_bt)
+                                ConnectionType.CLOUD -> stringResource(R.string.connection_relay)
+                                ConnectionType.UNKNOWN -> null
+                            }
+                            if (label != null) {
+                                "${stringResource(R.string.status_online)} · $label"
+                            } else {
+                                stringResource(R.string.status_online)
+                            }
                         } else {
-                            Text(
-                                stringResource(R.string.status_offline),
-                                color = Nm.onSurfaceMuted,
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
+                            stringResource(R.string.status_offline)
+                        },
+                        color = if (deviceOnline) Nm.success else Nm.danger
+                    )
                 }
                 NeumorphicIconTile(
                     icon = Icons.Default.Refresh,
@@ -378,6 +393,8 @@ fun DeviceConsoleScreen(
                         viewModel = viewModel,
                         capabilities = selectedCapabilities,
                         usageLogs = selectedUsageLogs,
+                        suspendedPackages = deviceOwnerSuspended[device.deviceId] ?: emptySet(),
+                        uninstallProtectedPackages = deviceOwnerUninstallProtected[device.deviceId] ?: emptySet(),
                         onOpenGuide = onOpenDeviceOwnerGuide
                     )
                 }
@@ -485,7 +502,7 @@ private fun NowSegment(
                 NeumorphicCard(modifier = Modifier.weight(1f), padding = 14.dp, corner = 20.dp) {
                     Text(
                         stringResource(R.string.console_screen_time).uppercase(),
-                        color = Nm.onSurfaceMuted, style = MaterialTheme.typography.labelSmall, letterSpacing = 1.1.sp
+                        color = Nm.onSurfaceMuted, style = MaterialTheme.typography.labelSmall, letterSpacing = trackingFor(1.1.sp)
                     )
                     Spacer(Modifier.height(6.dp))
                     NeumorphicDuration(targetMs = totalScreenTime, fontSize = 20)
@@ -499,7 +516,7 @@ private fun NowSegment(
                 NeumorphicCard(modifier = Modifier.weight(1f), padding = 14.dp, corner = 20.dp) {
                     Text(
                         stringResource(R.string.console_app_icon).uppercase(),
-                        color = Nm.onSurfaceMuted, style = MaterialTheme.typography.labelSmall, letterSpacing = 1.1.sp
+                        color = Nm.onSurfaceMuted, style = MaterialTheme.typography.labelSmall, letterSpacing = trackingFor(1.1.sp)
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
@@ -808,6 +825,8 @@ private fun DeviceOwnerSegment(
     viewModel: DeviceControlViewModel,
     capabilities: DeviceOwnerCapabilities,
     usageLogs: List<AppUsageLog>,
+    suspendedPackages: Set<String>,
+    uninstallProtectedPackages: Set<String>,
     onOpenGuide: () -> Unit
 ) {
     var blockedCapability by remember { mutableStateOf<DeviceOwnerCapability?>(null) }
@@ -968,15 +987,39 @@ private fun DeviceOwnerSegment(
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
-        items(usageLogs.take(5), key = { it.packageName }) { app ->
-            OwnerAppCard(
-                app = app,
-                capabilities = capabilities,
-                onBlocked = { blockedCapability = it },
-                onSuspend = { viewModel.setAppSuspended(device, app.packageName, true) },
-                onProtectUninstall = { viewModel.setUninstallProtection(device, app.packageName, true) },
-                onSetLimit = { appLimitFor = app.packageName }
-            )
+        // Show every manageable app (not just the top 5) so suspend /
+        // protect / limit are reachable for rarely-used apps too.
+        val manageableApps = usageLogs
+            .filter { it.category != AppCategory.SYSTEM }
+            .sortedByDescending { it.totalTimeInForeground }
+            .take(30)
+        if (manageableApps.isEmpty()) {
+            item {
+                NeumorphicCard(modifier = Modifier.fillMaxWidth(), padding = 20.dp, corner = 20.dp) {
+                    Text(
+                        text = stringResource(R.string.device_owner_apps_empty),
+                        color = Nm.onSurfaceMuted,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        } else {
+            items(manageableApps, key = { it.packageName }) { app ->
+                OwnerAppCard(
+                    app = app,
+                    capabilities = capabilities,
+                    isSuspended = app.packageName in suspendedPackages,
+                    isUninstallProtected = app.packageName in uninstallProtectedPackages,
+                    onBlocked = { blockedCapability = it },
+                    onSuspend = { viewModel.setAppSuspended(device, app.packageName, true) },
+                    onResume = { viewModel.setAppSuspended(device, app.packageName, false) },
+                    onProtectUninstall = { viewModel.setUninstallProtection(device, app.packageName, true) },
+                    onUnprotectUninstall = { viewModel.setUninstallProtection(device, app.packageName, false) },
+                    onSetLimit = { appLimitFor = app.packageName }
+                )
+            }
         }
         item {
             Text(
@@ -987,13 +1030,11 @@ private fun DeviceOwnerSegment(
             )
         }
         items(restrictionEntries, key = { it.first }) { (restrictionKey, label) ->
-            OwnerActionCard(
+            OwnerRestrictionCard(
                 title = label,
-                description = stringResource(R.string.device_owner_restrictions_desc),
-                actionLabel = stringResource(R.string.device_owner_restrict_action),
-                icon = Icons.Default.Shield,
                 state = capabilities.stateFor(DeviceOwnerCapability.USER_RESTRICTIONS),
-                onAction = { viewModel.setUserRestriction(device, restrictionKey, true) },
+                onApply = { viewModel.setUserRestriction(device, restrictionKey, true) },
+                onClear = { viewModel.setUserRestriction(device, restrictionKey, false) },
                 onBlocked = { blockedCapability = DeviceOwnerCapability.USER_RESTRICTIONS }
             )
         }
@@ -1006,11 +1047,16 @@ private fun DeviceOwnerStatusHeader(
     onOpenGuide: () -> Unit
 ) {
     val states = DeviceOwnerCapability.values().map(capabilities::stateFor)
+    val availableCount = states.count { it == CapabilityState.AVAILABLE }
     val state = when {
-        states.all { it == CapabilityState.AVAILABLE } -> CapabilityState.AVAILABLE
-        states.any { it == CapabilityState.UNAVAILABLE } -> CapabilityState.UNAVAILABLE
-        else -> CapabilityState.UNKNOWN
+        availableCount == states.size -> CapabilityState.AVAILABLE
+        availableCount == 0 && states.any { it == CapabilityState.UNAVAILABLE } -> CapabilityState.UNAVAILABLE
+        availableCount == 0 -> CapabilityState.UNKNOWN
+        // Partial availability: some controls work — surface as AVAILABLE
+        // with a partial subtitle instead of a red "unavailable" header.
+        else -> CapabilityState.AVAILABLE
     }
+    val isPartial = availableCount in 1 until states.size
     val color = ownerStateColor(state)
     val granted = state == CapabilityState.AVAILABLE
     NeumorphicCard(
@@ -1043,8 +1089,14 @@ private fun DeviceOwnerStatusHeader(
                     fontWeight = if (granted) FontWeight.Bold else FontWeight.Medium
                 )
                 Text(
-                    text = if (granted) {
+                    text = if (granted && !isPartial) {
                         stringResource(R.string.device_owner_access_granted_desc)
+                    } else if (granted) {
+                        stringResource(
+                            R.string.device_owner_status_partial,
+                            availableCount,
+                            states.size
+                        )
                     } else when (state) {
                         CapabilityState.AVAILABLE -> stringResource(R.string.device_owner_status_available)
                         CapabilityState.UNAVAILABLE -> stringResource(R.string.device_owner_status_unavailable)
@@ -1133,9 +1185,13 @@ private fun OwnerWifiCard(
 private fun OwnerAppCard(
     app: AppUsageLog,
     capabilities: DeviceOwnerCapabilities,
+    isSuspended: Boolean,
+    isUninstallProtected: Boolean,
     onBlocked: (DeviceOwnerCapability) -> Unit,
     onSuspend: () -> Unit,
+    onResume: () -> Unit,
     onProtectUninstall: () -> Unit,
+    onUnprotectUninstall: () -> Unit,
     onSetLimit: () -> Unit
 ) {
     val suspensionState = capabilities.stateFor(DeviceOwnerCapability.APP_SUSPENSION)
@@ -1156,27 +1212,108 @@ private fun OwnerAppCard(
                 overflow = TextOverflow.Ellipsis
             )
         }
+        if (isSuspended || isUninstallProtected) {
+            Spacer(Modifier.height(6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (isSuspended) {
+                    NeumorphicStatusPill(
+                        text = stringResource(R.string.device_owner_suspended_status),
+                        color = Nm.danger
+                    )
+                }
+                if (isUninstallProtected) {
+                    NeumorphicStatusPill(
+                        text = stringResource(R.string.device_owner_protected_status),
+                        color = Nm.success
+                    )
+                }
+            }
+        }
         Spacer(Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            MiniAction(
-                label = stringResource(R.string.device_owner_suspend_action),
-                icon = Icons.Default.Lock,
-                tint = ownerStateColor(suspensionState),
-                onClick = { if (suspensionState == CapabilityState.AVAILABLE) onSuspend() else onBlocked(DeviceOwnerCapability.APP_SUSPENSION) },
-                modifier = Modifier.weight(1f)
-            )
-            MiniAction(
-                label = stringResource(R.string.device_owner_uninstall_action),
-                icon = Icons.Default.Shield,
-                tint = ownerStateColor(uninstallState),
-                onClick = { if (uninstallState == CapabilityState.AVAILABLE) onProtectUninstall() else onBlocked(DeviceOwnerCapability.UNINSTALL_PROTECTION) },
-                modifier = Modifier.weight(1f)
-            )
+            if (isSuspended) {
+                MiniAction(
+                    label = stringResource(R.string.device_owner_resume_action),
+                    icon = Icons.Default.LockOpen,
+                    tint = Nm.success,
+                    onClick = { if (suspensionState == CapabilityState.AVAILABLE) onResume() else onBlocked(DeviceOwnerCapability.APP_SUSPENSION) },
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                MiniAction(
+                    label = stringResource(R.string.device_owner_suspend_action),
+                    icon = Icons.Default.Lock,
+                    tint = ownerStateColor(suspensionState),
+                    onClick = { if (suspensionState == CapabilityState.AVAILABLE) onSuspend() else onBlocked(DeviceOwnerCapability.APP_SUSPENSION) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            if (isUninstallProtected) {
+                MiniAction(
+                    label = stringResource(R.string.device_owner_unprotect_action),
+                    icon = Icons.Default.Shield,
+                    tint = Nm.success,
+                    onClick = { if (uninstallState == CapabilityState.AVAILABLE) onUnprotectUninstall() else onBlocked(DeviceOwnerCapability.UNINSTALL_PROTECTION) },
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                MiniAction(
+                    label = stringResource(R.string.device_owner_uninstall_action),
+                    icon = Icons.Default.Shield,
+                    tint = ownerStateColor(uninstallState),
+                    onClick = { if (uninstallState == CapabilityState.AVAILABLE) onProtectUninstall() else onBlocked(DeviceOwnerCapability.UNINSTALL_PROTECTION) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
             MiniAction(
                 label = stringResource(R.string.device_owner_limit_action),
                 icon = Icons.Default.Timer,
                 tint = ownerStateColor(limitState),
                 onClick = { if (limitState == CapabilityState.AVAILABLE) onSetLimit() else onBlocked(DeviceOwnerCapability.APP_USAGE_LIMITS) },
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun OwnerRestrictionCard(
+    title: String,
+    state: CapabilityState,
+    onApply: () -> Unit,
+    onClear: () -> Unit,
+    onBlocked: () -> Unit
+) {
+    val color = ownerStateColor(state)
+    val available = state == CapabilityState.AVAILABLE
+    NeumorphicCard(modifier = Modifier.fillMaxWidth(), padding = 16.dp, corner = 20.dp) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            NeumorphicIconTile(icon = Icons.Default.Shield, tint = color, size = 40.dp, iconSize = 19.dp)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(title, color = Nm.onSurface, style = MaterialTheme.typography.titleSmall)
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    stringResource(R.string.device_owner_restrictions_desc),
+                    color = Nm.onSurfaceMuted,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            MiniAction(
+                label = stringResource(R.string.device_owner_restrict_action),
+                icon = Icons.Default.Lock,
+                tint = color,
+                onClick = { if (available) onApply() else onBlocked() },
+                modifier = Modifier.weight(1f)
+            )
+            MiniAction(
+                label = stringResource(R.string.device_owner_restrict_clear_action),
+                icon = Icons.Default.LockOpen,
+                tint = Nm.success,
+                onClick = { if (available) onClear() else onBlocked() },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -1278,7 +1415,7 @@ private fun AppsSegment(
                 focusedTextColor = Nm.onSurface,
                 unfocusedTextColor = Nm.onSurface,
                 focusedBorderColor = Nm.primary,
-                unfocusedBorderColor = Nm.darkShadow.copy(alpha = 0.25f),
+                unfocusedBorderColor = Nm.fieldBorder,
                 focusedLabelColor = Nm.primary,
                 unfocusedLabelColor = Nm.onSurfaceMuted,
                 focusedContainerColor = Nm.surface,
@@ -1759,7 +1896,7 @@ private fun BoundaryCard(
                     colors = SliderDefaults.colors(
                         thumbColor = color,
                         activeTrackColor = color,
-                        inactiveTrackColor = Nm.darkShadow.copy(alpha = 0.2f)
+                        inactiveTrackColor = Nm.trackInactive
                     )
                 )
 
@@ -1883,7 +2020,7 @@ private fun RhythmSegment(
                     colors = SliderDefaults.colors(
                         thumbColor = Nm.primary,
                         activeTrackColor = Nm.primary,
-                        inactiveTrackColor = Nm.darkShadow.copy(alpha = 0.2f)
+                        inactiveTrackColor = Nm.trackInactive
                     )
                 )
                 Spacer(Modifier.height(8.dp))
@@ -1899,7 +2036,7 @@ private fun RhythmSegment(
                     colors = SliderDefaults.colors(
                         thumbColor = Nm.cyan,
                         activeTrackColor = Nm.cyan,
-                        inactiveTrackColor = Nm.darkShadow.copy(alpha = 0.2f)
+                        inactiveTrackColor = Nm.trackInactive
                     )
                 )
             }
@@ -1928,7 +2065,7 @@ private fun RhythmSegment(
                             colors = SliderDefaults.colors(
                                 thumbColor = Nm.primary,
                                 activeTrackColor = Nm.primary,
-                                inactiveTrackColor = Nm.darkShadow.copy(alpha = 0.2f)
+                                inactiveTrackColor = Nm.trackInactive
                             )
                         )
                     }
@@ -2305,7 +2442,7 @@ private fun AppIconBadge(
 
 @Composable
 private fun NmDivider(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().height(1.dp).background(Nm.darkShadow.copy(alpha = 0.18f)))
+    Box(modifier.fillMaxWidth().height(1.dp).background(Nm.divider))
 }
 
 @Composable
@@ -2359,7 +2496,7 @@ private fun ConsoleInputDialog(
                      focusedTextColor = Nm.onSurface,
                      unfocusedTextColor = Nm.onSurface,
                      focusedBorderColor = Nm.primary,
-                     unfocusedBorderColor = Nm.darkShadow.copy(alpha = 0.25f),
+                     unfocusedBorderColor = Nm.fieldBorder,
                      focusedLabelColor = Nm.primary,
                      unfocusedLabelColor = Nm.onSurfaceMuted,
                      focusedContainerColor = Nm.surface,
@@ -2412,7 +2549,7 @@ private fun DurationPickerDialog(
                              focusedTextColor = Nm.onSurface,
                              unfocusedTextColor = Nm.onSurface,
                              focusedBorderColor = Nm.primary,
-                             unfocusedBorderColor = Nm.darkShadow.copy(alpha = 0.25f),
+                             unfocusedBorderColor = Nm.fieldBorder,
                              focusedLabelColor = Nm.primary,
                              unfocusedLabelColor = Nm.onSurfaceMuted,
                              focusedContainerColor = Nm.surface,

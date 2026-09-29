@@ -164,9 +164,10 @@ class BluetoothClient(private val context: Context?) {
     suspend fun executeCommand(
         bluetoothMac: String,
         command: Packet.Command,
-        pairToken: String? = null
+        pairToken: String? = null,
+        timeoutMs: Long = CONNECT_TIMEOUT_MS
     ): Packet.Response? {
-        return withTimeoutOrNull(CONNECT_TIMEOUT_MS) {
+        return withTimeoutOrNull(timeoutMs) {
             withContext(Dispatchers.IO) {
                 try {
                     val adapter = BluetoothAdapter.getDefaultAdapter() ?: return@withContext null

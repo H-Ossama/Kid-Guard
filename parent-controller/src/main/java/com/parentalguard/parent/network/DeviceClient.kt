@@ -97,7 +97,9 @@ class DeviceClient(context: Context? = null) {
         endpoint: String,
         command: Packet.Command,
         isGet: Boolean = false,
-        skipDirect: Boolean = false
+        skipDirect: Boolean = false,
+        directTimeoutMs: Long = 5000,
+        btTimeoutMs: Long = 6000
     ): DeviceResponse<Packet.Response> = withContext(Dispatchers.IO) {
         // Devices paired purely over Bluetooth use a placeholder IP (0.0.0.0);
         // the direct HTTP tier can never reach them, so go straight to RFCOMM.
@@ -108,7 +110,7 @@ class DeviceClient(context: Context? = null) {
         if (!skipDirect && !bluetoothOnly) {
             try {
                 val token = deviceId?.let { pairTokens[it] }
-                val response: Packet.Response? = withTimeoutOrNull(5000) { // Increased to 5s
+                val response: Packet.Response? = withTimeoutOrNull(directTimeoutMs) {
                     client.request {
                         method = if (isGet) HttpMethod.Get else HttpMethod.Post
                         url {
@@ -140,8 +142,8 @@ class DeviceClient(context: Context? = null) {
         // 2. Try Bluetooth Fallback (same WiFi not required)
         if (btMac != null) {
             try {
-                val btResponse = withTimeoutOrNull(6000) {
-                    bluetoothClient.executeCommand(btMac, command, deviceId?.let { pairTokens[it] })
+                val btResponse = withTimeoutOrNull(btTimeoutMs + 1000) {
+                    bluetoothClient.executeCommand(btMac, command, deviceId?.let { pairTokens[it] }, btTimeoutMs)
                 }
                 if (btResponse != null) {
                     Log.i("DeviceClient", "Bluetooth connection success for $deviceId")
@@ -163,6 +165,27 @@ class DeviceClient(context: Context? = null) {
         }
 
         DeviceResponse(null, com.parentalguard.parent.viewmodel.ConnectionType.UNKNOWN)
+    }
+
+    /**
+     * Fast liveness probe across every tier (direct 2s → Bluetooth 4s →
+     * relay). Any non-null response counts as reachable, whatever its success
+     * flag. Powers the online/offline presence indicator.
+     */
+    suspend fun pingWithConnectionType(
+        ip: String,
+        port: Int,
+        deviceId: String?
+    ): DeviceResponse<Boolean> {
+        val result = executeCommand(
+            ip, port, deviceId,
+            "/ping",
+            Packet.Command(CommandType.PING),
+            isGet = true,
+            directTimeoutMs = 2000,
+            btTimeoutMs = 4000
+        )
+        return DeviceResponse(result.response != null, result.connectionType)
     }
 
     suspend fun getStatsWithConnectionType(

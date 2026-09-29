@@ -109,7 +109,7 @@ fun PinLockScreen(onUnlocked: () -> Unit) {
                             focusedTextColor = Nm.onSurface,
                             unfocusedTextColor = Nm.onSurface,
                             focusedBorderColor = Nm.primary,
-                            unfocusedBorderColor = Nm.darkShadow.copy(alpha = 0.5f),
+                            unfocusedBorderColor = Nm.fieldBorder,
                             focusedContainerColor = Nm.inset,
                             unfocusedContainerColor = Nm.inset,
                             focusedLabelColor = Nm.primary,

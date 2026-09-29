@@ -50,7 +50,16 @@ fun Modifier.neumorphic(
 ): Modifier = drawBehind {
     val blur = elevation.toPx()
     val offset = elevation.toPx() * 0.9f
-    val alpha = if (pressed) 0.42f else 0.6f
+    // Dark needs deep drop shadows but only a whisper of top highlight,
+    // otherwise cards look washed out. Light keeps the classic soft look.
+    val dark = ChildNmTheme.isDark
+    val alpha = when {
+        dark && pressed -> 0.85f
+        dark -> 0.9f
+        pressed -> 0.42f
+        else -> 0.6f
+    }
+    val lightAlphaFactor = if (dark) 0.22f else if (pressed) 0.55f else 0.8f
 
     fun shadowPaint(shadowColor: Color): Paint = Paint().apply {
         asFrameworkPaint().apply {
@@ -77,7 +86,7 @@ fun Modifier.neumorphic(
             )
             canvas.drawRect(
                 rect = Rect(-size.width * 0.3f, size.height * 0.35f, size.width * 1.3f, size.height * 1.5f),
-                paint = shadowPaint(lightShadowColor.copy(alpha = alpha * 0.55f))
+                paint = shadowPaint(lightShadowColor.copy(alpha = alpha * lightAlphaFactor))
             )
             canvas.restore()
         }
@@ -92,7 +101,7 @@ fun Modifier.neumorphic(
 
             canvas.save()
             canvas.translate(-offset, -offset)
-            canvas.drawPath(path, shadowPaint(lightShadowColor.copy(alpha = alpha * 0.8f)))
+            canvas.drawPath(path, shadowPaint(lightShadowColor.copy(alpha = alpha * lightAlphaFactor)))
             canvas.restore()
 
             canvas.drawPath(path, Paint().apply { color = backgroundColor })
@@ -101,13 +110,16 @@ fun Modifier.neumorphic(
 }
 
 /**
- * Soft pastel neumorphic backdrop with two subtle ambient color washes.
+ * Theme-aware neumorphic backdrop with two subtle ambient color washes.
  */
 @Composable
 fun NeumorphicBackground(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit
 ) {
+    // Slightly stronger washes in dark so depth stays visible on navy.
+    val wash1 = if (ChildNmTheme.isDark) 0.16f else 0.08f
+    val wash2 = if (ChildNmTheme.isDark) 0.12f else 0.06f
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -115,7 +127,7 @@ fun NeumorphicBackground(
             .drawBehind {
                 drawCircle(
                     brush = Brush.radialGradient(
-                        colors = listOf(NeumorphicPrimary.copy(alpha = 0.08f), Color.Transparent),
+                        colors = listOf(NeumorphicPrimary.copy(alpha = wash1), Color.Transparent),
                         center = Offset(size.width * 0.9f, size.height * 0.08f),
                         radius = size.width * 0.8f
                     ),
@@ -124,7 +136,7 @@ fun NeumorphicBackground(
                 )
                 drawCircle(
                     brush = Brush.radialGradient(
-                        colors = listOf(NeumorphicSuccess.copy(alpha = 0.06f), Color.Transparent),
+                        colors = listOf(NeumorphicSuccess.copy(alpha = wash2), Color.Transparent),
                         center = Offset(size.width * 0.0f, size.height * 0.95f),
                         radius = size.width * 1.1f
                     ),

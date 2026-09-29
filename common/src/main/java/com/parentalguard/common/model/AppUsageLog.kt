@@ -78,7 +78,9 @@ data class DeviceStats(
     val childAppVersionCode: Int = 0, // Child APK versionCode (for parent-pushed updates)
     val childPinSet: Boolean = false, // Whether the child protection PIN is set
     val updateResult: String? = null, // Last parent-pushed install outcome ("OK x.y.z" / "FAIL ...")
-    val pinProtectionEnabled: Boolean = true // Master PIN-gate switch, parent-controlled
+    val pinProtectionEnabled: Boolean = true, // Master PIN-gate switch, parent-controlled
+    val deviceOwnerSuspended: Set<String> = emptySet(), // Parent-requested manual suspends (tracked on child)
+    val deviceOwnerUninstallProtected: Set<String> = emptySet() // Parent-requested uninstall blocks (tracked on child)
 )
 
 @Serializable

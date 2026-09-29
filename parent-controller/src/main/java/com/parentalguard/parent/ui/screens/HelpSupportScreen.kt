@@ -332,6 +332,6 @@ private fun HelpDivider() {
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .height(1.dp)
-            .background(Nm.darkShadow.copy(alpha = 0.18f))
+            .background(Nm.divider)
     )
 }

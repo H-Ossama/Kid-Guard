@@ -47,6 +47,7 @@ import com.parentalguard.parent.ui.neumorphic.Nm
 import com.parentalguard.parent.ui.neumorphic.neumorphic
 import com.parentalguard.parent.ui.theme.DisplayFontFamily
 import com.parentalguard.parent.ui.theme.MonoFontFamily
+import com.parentalguard.parent.ui.theme.trackingFor
 import kotlinx.coroutines.launch
 
 // ============================================================================
@@ -131,7 +132,7 @@ fun OnboardingScreen(
                     fontFamily = DisplayFontFamily,
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp,
-                    letterSpacing = 2.2.sp
+                    letterSpacing = trackingFor(2.2.sp)
                 )
                 Spacer(Modifier.weight(1f))
                 if (!isLastPage) {
@@ -249,7 +250,7 @@ private fun PathPill(path: String) {
             fontFamily = MonoFontFamily,
             fontWeight = FontWeight.SemiBold,
             fontSize = 11.sp,
-            letterSpacing = 0.2.sp,
+            letterSpacing = trackingFor(0.2.sp),
             textAlign = TextAlign.Center
         )
     }

@@ -25,9 +25,18 @@ import android.widget.Toast
 
 class LockManager(private val context: Context) : LifecycleOwner, SavedStateRegistryOwner {
 
+    companion object {
+        /**
+         * Every overlay window ever attached in this process. A stale manager
+         * instance (service re-init) must never leave a window behind that no
+         * live manager will dismiss — hide() sweeps the whole registry.
+         */
+        private val attachedOverlays = mutableListOf<Pair<WindowManager, ComposeView>>()
+    }
+
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private var overlayView: ComposeView? = null
-    val isShowing: Boolean get() = overlayView != null
+    val isShowing: Boolean get() = overlayView != null || attachedOverlays.isNotEmpty()
     
     // Lifecycle components for Compose
     private val _lifecycleRegistry = LifecycleRegistry(this)
@@ -43,7 +52,7 @@ class LockManager(private val context: Context) : LifecycleOwner, SavedStateRegi
     }
 
     fun showLockScreen() {
-        if (overlayView != null) return // Already shown
+        if (isShowing) return // Already shown (by this or any manager instance)
 
         try {
             val params = WindowManager.LayoutParams(
@@ -86,7 +95,10 @@ class LockManager(private val context: Context) : LifecycleOwner, SavedStateRegi
             
             // Add to Window
             windowManager.addView(overlayView, params)
-            
+            synchronized(attachedOverlays) {
+                attachedOverlays.add(windowManager to overlayView!!)
+            }
+
             // Activate or resume the reusable Compose lifecycle.
             if (_lifecycleRegistry.currentState == Lifecycle.State.INITIALIZED) {
                 _lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
@@ -101,21 +113,46 @@ class LockManager(private val context: Context) : LifecycleOwner, SavedStateRegi
         } catch (e: Exception) {
             e.printStackTrace()
             // Cleanup on failure
+            val failedView = overlayView
             overlayView = null
+            if (failedView != null) {
+                synchronized(attachedOverlays) {
+                    attachedOverlays.removeAll { it.second === failedView }
+                }
+            }
         }
     }
 
     fun hideLockScreen() {
-        if (overlayView == null) return
-
         try {
             // Deactivate Lifecycle
             _lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
             _lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
-            windowManager.removeView(overlayView)
-            overlayView = null
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+        // Sweep EVERY attached overlay — including windows added by a stale
+        // manager instance that no longer exists. A failed removeView must
+        // never leave a zombie window behind, so the registry is cleared
+        // regardless and the local reference is always nulled.
+        synchronized(attachedOverlays) {
+            val pending = attachedOverlays.toList()
+            attachedOverlays.clear()
+            for ((wm, view) in pending) {
+                try {
+                    wm.removeView(view)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+        if (overlayView != null) {
+            try {
+                windowManager.removeView(overlayView)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            overlayView = null
         }
     }
 }

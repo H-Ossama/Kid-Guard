@@ -42,6 +42,8 @@ class PersistentStateManager(context: Context) {
         private const val KEY_OWNER_DEVICE_USAGE_LIMIT = "owner_device_usage_limit"
         private const val KEY_OWNER_APP_USAGE_LIMITS = "owner_app_usage_limits"
         private const val KEY_OWNER_USAGE_SUSPENDED = "owner_usage_suspended"
+        private const val KEY_OWNER_MANUAL_SUSPENDED = "owner_manual_suspended"
+        private const val KEY_OWNER_UNINSTALL_PROTECTED = "owner_uninstall_protected"
     }
     
     fun saveBreakRules(usageLimit: Long, breakDuration: Long, warningMs: Long, educationOnly: Boolean, allowExtensions: Boolean) {
@@ -260,6 +262,32 @@ class PersistentStateManager(context: Context) {
 
     fun loadOwnerUsageSuspended(): Set<String> {
         val value = prefs.getString(KEY_OWNER_USAGE_SUSPENDED, null) ?: return emptySet()
+        return runCatching { json.decodeFromString<List<String>>(value).toSet() }.getOrDefault(emptySet())
+    }
+
+    fun saveOwnerManualSuspended(packages: Set<String>) {
+        try {
+            prefs.edit().putString(KEY_OWNER_MANUAL_SUSPENDED, json.encodeToString(packages.toList())).apply()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun loadOwnerManualSuspended(): Set<String> {
+        val value = prefs.getString(KEY_OWNER_MANUAL_SUSPENDED, null) ?: return emptySet()
+        return runCatching { json.decodeFromString<List<String>>(value).toSet() }.getOrDefault(emptySet())
+    }
+
+    fun saveOwnerUninstallProtected(packages: Set<String>) {
+        try {
+            prefs.edit().putString(KEY_OWNER_UNINSTALL_PROTECTED, json.encodeToString(packages.toList())).apply()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun loadOwnerUninstallProtected(): Set<String> {
+        val value = prefs.getString(KEY_OWNER_UNINSTALL_PROTECTED, null) ?: return emptySet()
         return runCatching { json.decodeFromString<List<String>>(value).toSet() }.getOrDefault(emptySet())
     }
 }

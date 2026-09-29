@@ -31,7 +31,17 @@ class BlockerAccessibilityService : AccessibilityService() {
             AccessibilityEvent.TYPE_WINDOWS_CHANGED,
             AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
                 val packageName = event.packageName?.toString() ?: ""
-                
+
+                // While the device is locked, SystemUI (notification shade /
+                // quick settings) renders ABOVE the overlay lock screen and
+                // would otherwise offer Wi-Fi toggles and a Settings shortcut.
+                // Collapse it immediately with BACK (best-effort on
+                // non-Device-Owner devices; Device Owner locks it at OS level).
+                if (packageName == "com.android.systemui" && isLockdownActive()) {
+                    performGlobalAction(GLOBAL_ACTION_BACK)
+                    return
+                }
+
                 // If we are in Settings (App Info), handle the Force Stop clicks
                 if (packageName == "com.android.settings") {
                     handleSettingsAutomation()
@@ -100,6 +110,26 @@ class BlockerAccessibilityService : AccessibilityService() {
                 }
             }
         }
+    }
+
+    /**
+     * True while any lockdown is in force, using only in-memory rule state
+     * (no UsageStats queries — this runs on every window event).
+     */
+    private fun isLockdownActive(): Boolean {
+        if (RuleRepository.globalLock.value) return true
+        val now = System.currentTimeMillis()
+        if (RuleRepository.rules.value.any { it.isPermanentlyBlocked || it.blockEndTime > now }) {
+            return true
+        }
+        // An expired allowance timer means the app is currently re-blocked.
+        if (RuleRepository.appTimers.value.any { (pkg, _) -> !RuleRepository.isAppTimerActive(pkg) }) {
+            return true
+        }
+        if (RuleRepository.categoryTimers.value.any { (cat, _) -> !RuleRepository.isCategoryTimerActive(cat) }) {
+            return true
+        }
+        return false
     }
 
     private fun checkAndBlock(packageName: String) {

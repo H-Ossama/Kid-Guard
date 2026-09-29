@@ -101,7 +101,7 @@
     <string name="status_initializing">جارٍ التهيئة...</string>
     <string name="blocking_restricted_msg">ممنوع الدخول لـ %s.</string>
     <string name="quiet_focus_title">خد استراحة هادئة</string>
-    <string name="quiet_focus_message">هاد المساحة موقوفة دابا. تقدر تطلب وقت زايد من الوالد.</string>
+    <string name="quiet_focus_message">هذه المساحة متوقفة حالياً. يمكنك طلب وقت إضافي من والدك.</string>
 
     <!-- Fake System Settings -->
     <string name="fake_system_title">خدمات النظام الأساسية (System Core)</string>
@@ -149,6 +149,6 @@
     <string name="internet_blocker_channel">حالة حجب الإنترنت</string>
     <string name="internet_blocker_title">وكيل الرقابة الأبوية</string>
     <string name="internet_control_active">التحكم بالإنترنت نشط</string>
-    <string name="pin_remove_btn">حيد PIN</string><string name="pin_remove_title">نحيد رمز الحماية؟</string><string name="pin_remove_message">أي واحد حل هاد الإعدادات ما غاديش يتسول على PIN.</string>    <string name="pin_removed">تحيد رمز الحماية</string>
-    <string name="lock_screen_reactivate_desc">صيفط طلب جديد</string><string name="lock_screen_reactivated">تقدر تصيفط طلب جديد دابا</string>
+    <string name="pin_remove_btn">إزالة رمز PIN</string><string name="pin_remove_title">إزالة رمز الحماية؟</string><string name="pin_remove_message">لن يُطلب رمز PIN من أي شخص يفتح هذه الإعدادات.</string>    <string name="pin_removed">تمت إزالة رمز الحماية</string>
+    <string name="lock_screen_reactivate_desc">إرسال طلب جديد</string><string name="lock_screen_reactivated">يمكنك إرسال طلب جديد الآن</string>
 </resources>

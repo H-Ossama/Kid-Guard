@@ -80,9 +80,9 @@ import com.parentalguard.parent.ui.neumorphic.NeumorphicButton
 import com.parentalguard.parent.ui.neumorphic.NeumorphicCard
 import com.parentalguard.parent.ui.neumorphic.NeumorphicEmptyState
 import com.parentalguard.parent.ui.neumorphic.NeumorphicIconTile
-import com.parentalguard.parent.ui.neumorphic.NeumorphicConnectionPill
 import com.parentalguard.parent.ui.neumorphic.NeumorphicSectionHeader
 import com.parentalguard.parent.ui.neumorphic.NeumorphicStatusDot
+import com.parentalguard.parent.ui.neumorphic.NeumorphicStatusPill
 import com.parentalguard.parent.ui.neumorphic.neumorphic
 import com.parentalguard.parent.ui.neumorphic.rememberNmPress
 import com.parentalguard.parent.ui.theme.MonoFontFamily
@@ -387,7 +387,7 @@ private fun RadarSweep(scanning: Boolean) {
             val c = center
             listOf(0.33f, 0.66f, 1f).forEach { f ->
                 drawCircle(
-                    color = Nm.darkShadow.copy(alpha = 0.3f),
+                    color = Nm.divider,
                     radius = size.minDimension / 2f * f,
                     center = c,
                     style = Stroke(width = 1.dp.toPx())
@@ -442,6 +442,13 @@ private fun CircleDeviceRow(
             )
             .padding(16.dp)
     ) {
+        val online = status?.isOnline == true
+        val transportLabel = when (connectionType) {
+            ConnectionType.LOCAL -> stringResource(R.string.connection_local)
+            ConnectionType.BLUETOOTH -> stringResource(R.string.status_bt)
+            ConnectionType.CLOUD -> stringResource(R.string.connection_relay)
+            ConnectionType.UNKNOWN -> null
+        }
         Row(verticalAlignment = Alignment.CenterVertically) {
             NeumorphicAvatar(name = device.customName.ifBlank { device.name })
             Spacer(Modifier.width(14.dp))
@@ -455,7 +462,7 @@ private fun CircleDeviceRow(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     NeumorphicStatusDot(
                         color = when {
-                            status?.isOnline == true -> Nm.success
+                            online -> Nm.success
                             status != null -> Nm.danger
                             else -> Nm.onSurfaceMuted
                         },
@@ -463,14 +470,35 @@ private fun CircleDeviceRow(
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        text = device.ip.hostAddress ?: "",
+                        text = if (online && transportLabel != null) {
+                            "${device.ip.hostAddress ?: ""} · $transportLabel"
+                        } else {
+                            device.ip.hostAddress ?: ""
+                        },
                         color = Nm.onSurfaceMuted,
                         fontFamily = MonoFontFamily,
                         fontSize = 11.sp
                     )
                 }
             }
-            NeumorphicConnectionPill(connectionType)
+            // Big, glanceable presence pill: green ONLINE / red OFFLINE.
+            // Fed by the 15 s presence heartbeat (direct → BT → relay).
+            NeumorphicStatusPill(
+                text = if (online) {
+                    if (transportLabel != null) {
+                        "${stringResource(R.string.status_online)} · $transportLabel"
+                    } else {
+                        stringResource(R.string.status_online)
+                    }
+                } else {
+                    stringResource(R.string.status_offline)
+                },
+                color = when {
+                    online -> Nm.success
+                    status != null -> Nm.danger
+                    else -> Nm.onSurfaceMuted
+                }
+            )
             Spacer(Modifier.width(6.dp))
             Icon(Icons.Default.ChevronRight, null, tint = Nm.onSurfaceMuted, modifier = Modifier.size(20.dp))
         }

@@ -44,6 +44,7 @@ import com.parentalguard.parent.ui.neumorphic.NeumorphicIconTile
 import com.parentalguard.parent.ui.neumorphic.Nm
 import com.parentalguard.parent.ui.openUrl
 import com.parentalguard.parent.ui.theme.MonoFontFamily
+import com.parentalguard.parent.ui.theme.trackingFor
 
 private const val GITHUB_PROFILE_URL = "https://github.com/H-Ossama"
 private const val GITHUB_REPO_URL = "https://github.com/H-Ossama/Family-Guard"
@@ -288,6 +289,6 @@ private fun SectionLabel(resId: Int) {
         color = Nm.primary,
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.Bold,
-        letterSpacing = MaterialTheme.typography.labelSmall.letterSpacing
+        letterSpacing = trackingFor(MaterialTheme.typography.labelSmall.letterSpacing)
     )
 }

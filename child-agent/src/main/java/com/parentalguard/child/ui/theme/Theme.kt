@@ -54,43 +54,45 @@ private val LightColorScheme = lightColorScheme(
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryLight,
-    onPrimary = PrimaryDark,
-    primaryContainer = Primary,
-    onPrimaryContainer = Color.White,
-    
-    secondary = SecondaryLight,
-    onSecondary = SecondaryDark,
-    secondaryContainer = Secondary,
-    onSecondaryContainer = Color.White,
-    
-    tertiary = AccentPurple,
-    onTertiary = Color.White,
-    tertiaryContainer = Color(0xFF4A148C),
+    // Professional slate-navy dark, aligned with the Neumorphic dark palette.
+    // All on-colors are near-white for WCAG AA contrast on navy.
+    primary = Color(0xFF8F83FF),
+    onPrimary = Color(0xFF0B0A1E),
+    primaryContainer = Color(0xFF2B2454),
+    onPrimaryContainer = Color(0xFFD8D2FF),
+
+    secondary = Color(0xFF22D3EE),
+    onSecondary = Color(0xFF03252B),
+    secondaryContainer = Color(0xFF0B3540),
+    onSecondaryContainer = Color(0xFFBDEFF9),
+
+    tertiary = Color(0xFFA78BFA),
+    onTertiary = Color(0xFF211038),
+    tertiaryContainer = Color(0xFF2B2454),
     onTertiaryContainer = Color(0xFFEDE7F6),
-    
-    error = Color(0xFFEF5350),
-    onError = Color.Black,
-    errorContainer = Color(0xFF93000A),
-    onErrorContainer = Color(0xFFFFDAD6),
-    
-    background = BackgroundDark,
-    onBackground = TextPrimaryDark,
-    
-    surface = SurfaceDark,
-    onSurface = TextPrimaryDark,
-    surfaceVariant = SurfaceVariantDark,
-    onSurfaceVariant = TextSecondaryDark,
-    
-    outline = TextTertiaryDark,
-    outlineVariant = Color(0xFF3D3D3D),
-    
-    inverseSurface = SurfaceLight,
-    inverseOnSurface = TextPrimaryLight,
-    inversePrimary = Primary,
-    
-    surfaceTint = PrimaryLight,
-    scrim = Color.Black
+
+    error = Color(0xFFFB7185),
+    onError = Color(0xFF3B0A14),
+    errorContainer = Color(0xFF4A1420),
+    onErrorContainer = Color(0xFFFFD9DE),
+
+    background = Color(0xFF080C16),
+    onBackground = Color(0xFFF1F5F9),
+
+    surface = Color(0xFF080C16),
+    onSurface = Color(0xFFF1F5F9),
+    surfaceVariant = Color(0xFF131B31),
+    onSurfaceVariant = Color(0xFF9AA9C7),
+
+    outline = Color(0xFF5B6B84),
+    outlineVariant = Color(0xFF1C2637),
+
+    inverseSurface = Color(0xFFF4F6FB),
+    inverseOnSurface = Color(0xFF0B1220),
+    inversePrimary = Color(0xFF5B6BD6),
+
+    surfaceTint = Color(0xFF8F83FF),
+    scrim = Color(0xCC02040A)
 )
 
 // Premium gradient brush for backgrounds
@@ -115,15 +117,20 @@ fun ParentalGuardTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-    
+
+    // Keep the Neumorphic kit in sync: every Neumorphic* val reads this state,
+    // so the whole child UI flips to the dark slate palette automatically.
+    ChildNmTheme.isDark = darkTheme
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val context = view.context
             if (context is Activity) {
                 val window = context.window
-                window.statusBarColor = colorScheme.background.toArgb()
-                window.navigationBarColor = colorScheme.background.toArgb()
+                window.statusBarColor = Color.Transparent.toArgb()
+                window.navigationBarColor = Color.Transparent.toArgb()
+                WindowCompat.setDecorFitsSystemWindows(window, false)
                 val insetsController = WindowCompat.getInsetsController(window, view)
                 insetsController.isAppearanceLightStatusBars = !darkTheme
                 insetsController.isAppearanceLightNavigationBars = !darkTheme

@@ -175,4 +175,34 @@ class PacketSerializationTest {
 
         assertNull(decoded.blockingScreenStyle)
     }
+
+    @Test
+    fun deviceStatsWithoutOwnerState_defaultsToEmpty() {
+        // Payloads from older child builds lack the suspend/protect sets.
+        val legacyJson = """
+            {"batteryLevel":80,"lastSeenTimestamp":123,"usageLogs":[]}
+        """.trimIndent()
+
+        val decoded = json.decodeFromString(DeviceStats.serializer(), legacyJson)
+
+        assertTrue(decoded.deviceOwnerSuspended.isEmpty())
+        assertTrue(decoded.deviceOwnerUninstallProtected.isEmpty())
+    }
+
+    @Test
+    fun deviceStatsOwnerState_roundTripPreservesSets() {
+        val stats = DeviceStats(
+            batteryLevel = 80,
+            lastSeenTimestamp = 123L,
+            usageLogs = emptyList(),
+            deviceOwnerSuspended = setOf("com.example.game"),
+            deviceOwnerUninstallProtected = setOf("com.example.video")
+        )
+
+        val encoded = json.encodeToString(DeviceStats.serializer(), stats)
+        val decoded = json.decodeFromString(DeviceStats.serializer(), encoded)
+
+        assertEquals(setOf("com.example.game"), decoded.deviceOwnerSuspended)
+        assertEquals(setOf("com.example.video"), decoded.deviceOwnerUninstallProtected)
+    }
 }

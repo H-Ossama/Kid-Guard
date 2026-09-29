@@ -12,4 +12,15 @@
     <!-- Base Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Neumorphism palette — professional slate-navy dark (mirrors Compose) -->
+    <color name="neu_background">#080C16</color>
+    <color name="neu_surface">#131B31</color>
+    <color name="neu_surface_inset">#060B15</color>
+    <color name="neu_on_surface">#F1F5F9</color>
+    <color name="neu_on_surface_muted">#9AA9C7</color>
+    <color name="neu_primary">#8F83FF</color>
+    <color name="neu_primary_deep">#7C6CFF</color>
+    <color name="neu_light_shadow">#2A3A5C</color>
+    <color name="neu_dark_shadow">#000000</color>
 </resources>

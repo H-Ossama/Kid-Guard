@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.parentalguard.parent.ui.aura.formatAuraDuration
 import com.parentalguard.parent.ui.theme.MonoFontFamily
+import com.parentalguard.parent.ui.theme.trackingFor
 import kotlin.math.abs
 
 // ============================================================================
@@ -59,21 +60,70 @@ import kotlin.math.abs
 // ============================================================================
 
 object Nm {
-    val bg = Color(0xFFE4E9F5)
-    val surface = Color(0xFFEAEFFB)
-    val inset = Color(0xFFDCE3F2)
-    val lightShadow = Color(0xFFFFFFFF)
-    val darkShadow = Color(0xFFA3AFCA)
-    val onSurface = Color(0xFF2C3752)
-    val onSurfaceMuted = Color(0xFF7A86A1)
-    val primary = Color(0xFF5B6BD6)
-    val primaryDeep = Color(0xFF4555B8)
-    val primarySoft = Color(0xFFEDF0FC)
-    val violet = Color(0xFF9A7CF2)
-    val cyan = Color(0xFF3BB7C9)
-    val success = Color(0xFF3BC97E)
-    val warning = Color(0xFFF5B64C)
-    val danger = Color(0xFFF0657A)
+    // Set by ParentalGuardTheme on every composition. Backed by SnapshotState
+    // so every Nm.* reader recomposes automatically on theme change.
+    var isDark by androidx.compose.runtime.mutableStateOf(false)
+
+    // --- Light (porcelain pastel) ---
+    private val LightBg = Color(0xFFE4E9F5)
+    private val LightSurface = Color(0xFFEAEFFB)
+    private val LightInset = Color(0xFFDCE3F2)
+    private val LightShadow = Color(0xFFFFFFFF)
+    private val LightDarkShadow = Color(0xFFA3AFCA)
+    private val LightOnSurface = Color(0xFF2C3752)
+    private val LightOnSurfaceMuted = Color(0xFF7A86A1)
+    private val LightPrimary = Color(0xFF5B6BD6)
+    private val LightPrimaryDeep = Color(0xFF4555B8)
+    private val LightPrimarySoft = Color(0xFFEDF0FC)
+    private val LightViolet = Color(0xFF9A7CF2)
+    private val LightCyan = Color(0xFF3BB7C9)
+    private val LightSuccess = Color(0xFF3BC97E)
+    private val LightWarning = Color(0xFFF5B64C)
+    private val LightDanger = Color(0xFFF0657A)
+
+    // --- Dark (professional slate-navy, WCAG AA text contrast) ---
+    // Base matches AuraBgBase so Neumorphic + Aura layers blend seamlessly.
+    private val DarkBg = Color(0xFF080C16)
+    private val DarkSurface = Color(0xFF131B31)
+    private val DarkInset = Color(0xFF060B15)
+    private val DarkLightShadow = Color(0xFF2A3A5C)
+    private val DarkShadow = Color(0xFF000000)
+    private val DarkOnSurface = Color(0xFFF1F5F9) // ~15:1 on DarkSurface
+    private val DarkOnSurfaceMuted = Color(0xFF9AA9C7) // ~7:1 on DarkSurface
+    private val DarkPrimary = Color(0xFF8F83FF) // brightened indigo, readable on dark
+    private val DarkPrimaryDeep = Color(0xFF7C6CFF)
+    private val DarkPrimarySoft = Color(0xFF23264E) // dark indigo container
+    private val DarkViolet = Color(0xFFA78BFA)
+    private val DarkCyan = Color(0xFF22D3EE)
+    private val DarkSuccess = Color(0xFF34D399)
+    private val DarkWarning = Color(0xFFFBBF24)
+    private val DarkDanger = Color(0xFFFB7185)
+
+    val bg: Color get() = if (isDark) DarkBg else LightBg
+    val surface: Color get() = if (isDark) DarkSurface else LightSurface
+    val inset: Color get() = if (isDark) DarkInset else LightInset
+    val lightShadow: Color get() = if (isDark) DarkLightShadow else LightShadow
+    val darkShadow: Color get() = if (isDark) DarkShadow else LightDarkShadow
+    val onSurface: Color get() = if (isDark) DarkOnSurface else LightOnSurface
+    val onSurfaceMuted: Color get() = if (isDark) DarkOnSurfaceMuted else LightOnSurfaceMuted
+    val primary: Color get() = if (isDark) DarkPrimary else LightPrimary
+    val primaryDeep: Color get() = if (isDark) DarkPrimaryDeep else LightPrimaryDeep
+    val primarySoft: Color get() = if (isDark) DarkPrimarySoft else LightPrimarySoft
+    val violet: Color get() = if (isDark) DarkViolet else LightViolet
+    val cyan: Color get() = if (isDark) DarkCyan else LightCyan
+    val success: Color get() = if (isDark) DarkSuccess else LightSuccess
+    val warning: Color get() = if (isDark) DarkWarning else LightWarning
+    val danger: Color get() = if (isDark) DarkDanger else LightDanger
+
+    // --- Theme-aware hairlines: never use darkShadow (pure black in dark)
+    // directly for dividers / field borders / slider tracks — it vanishes
+    // on navy. These stay visible in both modes.
+    val divider: Color
+        get() = if (isDark) Color(0xFF2A3A5C) else LightDarkShadow.copy(alpha = 0.35f)
+    val fieldBorder: Color
+        get() = if (isDark) DarkOnSurfaceMuted.copy(alpha = 0.38f) else LightDarkShadow.copy(alpha = 0.5f)
+    val trackInactive: Color
+        get() = if (isDark) Color(0xFF22304D) else LightDarkShadow.copy(alpha = 0.35f)
 
     val EaseOutSoft = CubicBezierEasing(0.22f, 1f, 0.36f, 1f)
 }
@@ -109,7 +159,16 @@ fun Modifier.neumorphic(
 ): Modifier = drawBehind {
     val blur = elevation.toPx()
     val offset = elevation.toPx() * 0.9f
-    val alpha = if (pressed) 0.42f else 0.6f
+    // Dark needs deep drop shadows but only a whisper of top highlight,
+    // otherwise cards look washed out. Light keeps the classic soft look.
+    val dark = Nm.isDark
+    val alpha = when {
+        dark && pressed -> 0.85f
+        dark -> 0.9f
+        pressed -> 0.42f
+        else -> 0.6f
+    }
+    val lightAlphaFactor = if (dark) 0.22f else if (pressed) 0.55f else 0.8f
 
     fun shadowPaint(shadowColor: Color): Paint = Paint().apply {
         asFrameworkPaint().apply {
@@ -136,7 +195,7 @@ fun Modifier.neumorphic(
             )
             canvas.drawRect(
                 rect = Rect(-size.width * 0.3f, size.height * 0.35f, size.width * 1.3f, size.height * 1.5f),
-                paint = shadowPaint(lightShadowColor.copy(alpha = alpha * 0.55f))
+                paint = shadowPaint(lightShadowColor.copy(alpha = alpha * lightAlphaFactor))
             )
             canvas.restore()
         }
@@ -151,7 +210,7 @@ fun Modifier.neumorphic(
 
             canvas.save()
             canvas.translate(-offset, -offset)
-            canvas.drawPath(path, shadowPaint(lightShadowColor.copy(alpha = alpha * 0.8f)))
+            canvas.drawPath(path, shadowPaint(lightShadowColor.copy(alpha = alpha * lightAlphaFactor)))
             canvas.restore()
 
             canvas.drawPath(path, Paint().apply { color = backgroundColor })
@@ -159,12 +218,16 @@ fun Modifier.neumorphic(
     }
 }
 
-/** Soft pastel neumorphic backdrop with two subtle ambient color washes. */
+/** Theme-aware neumorphic backdrop with two subtle ambient color washes. */
 @Composable
 fun NeumorphicBackground(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit
 ) {
+    // Slightly stronger washes in dark so depth stays visible on navy,
+    // restrained in light to keep the pastel calm.
+    val wash1 = if (Nm.isDark) 0.16f else 0.08f
+    val wash2 = if (Nm.isDark) 0.12f else 0.06f
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -172,7 +235,7 @@ fun NeumorphicBackground(
             .drawBehind {
                 drawCircle(
                     brush = Brush.radialGradient(
-                        colors = listOf(Nm.primary.copy(alpha = 0.08f), Color.Transparent),
+                        colors = listOf(Nm.primary.copy(alpha = wash1), Color.Transparent),
                         center = Offset(size.width * 0.9f, size.height * 0.06f),
                         radius = size.width * 0.85f
                     ),
@@ -181,7 +244,7 @@ fun NeumorphicBackground(
                 )
                 drawCircle(
                     brush = Brush.radialGradient(
-                        colors = listOf(Nm.violet.copy(alpha = 0.06f), Color.Transparent),
+                        colors = listOf(Nm.violet.copy(alpha = wash2), Color.Transparent),
                         center = Offset(size.width * 0.0f, size.height * 0.98f),
                         radius = size.width * 1.15f
                     ),
@@ -349,7 +412,7 @@ fun NeumorphicStat(
             text = label.uppercase(),
             color = Nm.onSurfaceMuted,
             style = MaterialTheme.typography.labelSmall,
-            letterSpacing = 1.2.sp,
+            letterSpacing = trackingFor(1.2.sp),
             fontWeight = FontWeight.Medium
         )
         Spacer(Modifier.height(6.dp))
@@ -359,7 +422,7 @@ fun NeumorphicStat(
             fontFamily = MonoFontFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 19.sp,
-            letterSpacing = (-0.5).sp
+            letterSpacing = trackingFor((-0.5).sp)
         )
     }
 }
@@ -575,7 +638,7 @@ fun NeumorphicDuration(
         fontFamily = MonoFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = fontSize.sp,
-        letterSpacing = (-1).sp
+        letterSpacing = trackingFor((-1).sp)
     )
 }
 

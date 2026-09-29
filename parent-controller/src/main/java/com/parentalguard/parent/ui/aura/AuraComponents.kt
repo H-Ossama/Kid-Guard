@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.parentalguard.parent.ui.theme.MonoFontFamily
+import com.parentalguard.parent.ui.theme.trackingFor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -171,7 +172,7 @@ fun AuraButton(
                     color = Color.White,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.2.sp
+                    letterSpacing = trackingFor(0.2.sp)
                 )
             }
         }
@@ -429,7 +430,7 @@ fun StatusPill(text: String, color: Color, modifier: Modifier = Modifier) {
             fontFamily = MonoFontFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 10.sp,
-            letterSpacing = 1.sp
+            letterSpacing = trackingFor(1.sp)
         )
     }
 }
@@ -454,7 +455,7 @@ fun AnimatedDuration(
         fontFamily = MonoFontFamily,
         fontWeight = weight,
         fontSize = fontSize.sp,
-        letterSpacing = (-1).sp
+        letterSpacing = trackingFor((-1).sp)
     )
 }
 
@@ -477,7 +478,7 @@ fun StatBlock(
                 text = label.uppercase(),
                 color = Aura.textDim,
                 style = MaterialTheme.typography.labelSmall,
-                letterSpacing = 1.2.sp,
+                letterSpacing = trackingFor(1.2.sp),
                 fontWeight = FontWeight.Medium
             )
         }
@@ -488,7 +489,7 @@ fun StatBlock(
             fontFamily = MonoFontFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 19.sp,
-            letterSpacing = (-0.5).sp
+            letterSpacing = trackingFor((-0.5).sp)
         )
     }
 }

@@ -13,10 +13,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import com.parentalguard.parent.ui.neumorphic.Nm
 
 /** True when the AURA night scheme is active. Components read glass tints from it. */
 val LocalAuraDark = compositionLocalOf { true }
+
+/**
+ * Arabic (and other RTL scripts) must never be letter-spaced: the line
+ * breaker gains mid-word break opportunities and connected letters split
+ * ("النشاط" renders as "النشا ط"). Returns zero tracking for RTL locales,
+ * the design value otherwise.
+ */
+@Composable
+fun trackingFor(design: androidx.compose.ui.unit.TextUnit): androidx.compose.ui.unit.TextUnit {
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current
+        .locales[0] ?: java.util.Locale.getDefault()
+    val rtl = androidx.core.text.TextUtilsCompat.getLayoutDirectionFromLocale(locale) ==
+        android.view.View.LAYOUT_DIRECTION_RTL
+    return if (rtl) 0.sp else design
+}
 
 private val DarkColorScheme = darkColorScheme(
     primary = AuroraIndigo,
@@ -97,10 +114,28 @@ fun ParentalGuardTheme(
             }
         }
     }
+    // Display titles carry tight (negative) tracking that splits Arabic
+    // words — neutralize it for RTL locales (see trackingFor).
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current
+        .locales[0] ?: java.util.Locale.getDefault()
+    val isRtl = androidx.core.text.TextUtilsCompat.getLayoutDirectionFromLocale(locale) ==
+        android.view.View.LAYOUT_DIRECTION_RTL
+    val typography = if (isRtl) {
+        ParentalGuardTypography.copy(
+            displayLarge = ParentalGuardTypography.displayLarge.copy(letterSpacing = 0.sp),
+            displayMedium = ParentalGuardTypography.displayMedium.copy(letterSpacing = 0.sp)
+        )
+    } else {
+        ParentalGuardTypography
+    }
+    // Keep the legacy Neumorphic (Nm) kit in sync with Material dark state.
+    // Nm.isDark is SnapshotState so every Nm.* reader recomposes on change,
+    // guaranteeing text stays on a contrasting surface in both modes.
+    Nm.isDark = darkTheme
     CompositionLocalProvider(LocalAuraDark provides darkTheme) {
         MaterialTheme(
             colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
-            typography = ParentalGuardTypography,
+            typography = typography,
             shapes = ParentalGuardShapes,
             content = content
         )

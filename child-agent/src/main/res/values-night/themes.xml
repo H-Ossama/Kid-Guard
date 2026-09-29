@@ -6,9 +6,9 @@
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
-        <item name="android:windowBackground">#080A0F</item>
-        <item name="android:statusBarColor">#080A0F</item>
-        <item name="android:navigationBarColor">#080A0F</item>
+        <item name="android:windowBackground">#080C16</item>
+        <item name="android:statusBarColor">#080C16</item>
+        <item name="android:navigationBarColor">#080C16</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
     </style>

@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kid Guard</string>
+    
+    <!-- Main Screen -->
+    <string name="scan_qr">Scanner le QR code</string>
+    <string name="discovered_devices">Appareils détectés :</string>
+    <string name="no_devices">Aucun appareil trouvé</string>
+    <string name="connect">Connecter</string>
+    <string name="back">Retour</string>
+    
+    <!-- Device Control -->
+    <string name="lock_device">Verrouiller l\'appareil</string>
+    <string name="unlock_device">Déverrouiller l\'appareil</string>
+    
+    <!-- Navigation -->
+    <string name="nav_dashboard">Tableau de bord</string>
+    <string name="nav_reports">Rapports</string>
+    <string name="nav_devices">Appareils</string>
+    <string name="nav_settings">Paramètres</string>
+    <string name="tab_overview">Aperçu</string>
+    <string name="tab_apps">Applis</string>
+    <string name="tab_limits">Limites</string>
+    <string name="tab_reports">Rapports</string>
+    
+    <string name="app_usage">Utilisation des applis</string>
+    <string name="control_label">Contrôles :</string>
+    <string name="refresh_stats">Actualiser les stats</string>
+    <string name="block_1h">Bloquer 1 heure</string>
+    <string name="device_name">Nom de l\'appareil :</string>
+    <string name="rename_device">Renommer</string>
+    <string name="device_renamed">Appareil renommé avec succès</string>
+    
+    <!-- Permissions -->
+    <string name="camera_permission_required">Autorisation caméra requise pour scanner le QR code</string>
+    <string name="scan_instruction">Scannez le QR code sur l\'appareil de votre enfant</string>
+    
+    <!-- Categories -->
+    <string name="category_limits">Limites par catégorie</string>
+    <string name="set_category_limit">Définir une limite de catégorie</string>
+    <string name="category_social">Réseaux sociaux</string>
+    <string name="category_games">Jeux</string>
+    <string name="category_education">Éducation</string>
+    <string name="category_productivity">Productivité</string>
+    <string name="category_entertainment">Divertissement</string>
+    <string name="category_system">Système</string>
+    <string name="category_other">Autre</string>
+    <string name="time_limit_minutes">Limite de temps (minutes) :</string>
+    <string name="save">Enregistrer</string>
+    <string name="cancel">Annuler</string>
+    
+    <!-- Unlock Requests -->
+    <string name="unlock_request_title">Nouvelle demande de déverrouillage</string>
+    <string name="unlock_request_message">%s a demandé un déverrouillage temporaire</string>
+    <string name="approve">Approuver</string>
+    <string name="deny">Refuser</string>
+    <string name="unlock_duration">Durée (minutes) :</string>
+    <string name="approve_unlock_success">Demande approuvée</string>
+    <string name="deny_unlock_success">Demande refusée</string>
+    
+    <!-- Daily Reports -->
+    <string name="daily_report">Rapport quotidien</string>
+    <string name="total_screen_time">Temps d\'écran total : %s</string>
+    <string name="most_used_apps">Applis les plus utilisées</string>
+    <string name="category_usage">Utilisation par catégorie</string>
+    <string name="view_report">Voir le rapport</string>
+    <string name="no_report">Aucun rapport pour aujourd\'hui</string>
+    
+    <!-- Whitelist -->
+    <string name="whitelist">Liste blanche</string>
+    <string name="whitelist_description">Applis toujours autorisées</string>
+    <string name="add_to_whitelist">Ajouter à la liste blanche</string>
+    <string name="remove_from_whitelist">Retirer de la liste blanche</string>
+    
+    <!-- Time Formatting -->
+    <string name="hours_short">h</string>
+    <string name="minutes_short">min</string>
+    <string name="seconds_short">s</string>
+    
+    <!-- Settings -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_subtitle">Gérer les préférences de l\'appli</string>
+    <string name="settings_language">Langue</string>
+    <string name="language_english">Anglais</string>
+    <string name="language_arabic">Arabe</string>
+    <string name="language_french">Français</string>
+<string name="about_title">À propos de Kid Guard</string>
+    <string name="about_section_title">À propos</string>
+    <string name="app_version">Version %1$s</string>
+    <string name="about_desc">Protéger votre famille numérique</string>
+    <string name="about_dialog_desc">Kid Guard vous aide à garder vos enfants en sécurité en ligne.</string>
+    <string name="about_tagline">Le centre de commande calme de votre famille</string>
+    <string name="about_screen_title">À propos de cette appli</string>
+    <string name="about_screen_desc">Kid Guard est une suite de sécurité familiale qui vous permet de voir ce que vos enfants font sur leurs téléphones et de garder leur monde numérique en sécurité. Jumelez un appareil enfant, suivez son utilisation en temps réel, bloquez des applis, fixez des limites de temps et recevez des rapports quotidiens — tout depuis un seul écran.</string>
+    <string name="about_developer_title">Développeur</string>
+    <string name="about_developer_name">H-Ossama</string>
+    <string name="about_developer_role">Créateur de Kid Guard</string>
+    <string name="about_github_profile">Profil GitHub</string>
+    <string name="about_github_repo">Voir le code sur GitHub</string>
+    <string name="about_legal_title">Mentions légales et open source</string>
+    <string name="about_legal_desc">Kid Guard est un projet open source. Lisez le code, signalez des problèmes et proposez des idées sur GitHub.</string>
+    <string name="about_made_with">Fait avec soin pour votre famille</string>
+    <string name="label_features">Fonctions principales :</string>
+
+     <!-- Security -->
+    <string name="security_title">Sécurité</string>
+    <string name="pin_protection_title">Protection par PIN</string>
+    <string name="pin_protection_desc">Exiger un PIN pour accéder à l\'appli</string>
+    <string name="biometric_title">Connexion biométrique</string>
+    <string name="biometric_desc">Utiliser l\'empreinte pour déverrouiller</string>
+    
+    <string name="notifications_title">Notifications</string>
+    <string name="push_notif_title">Notifications push</string>
+    <string name="push_notif_desc">Recevoir alertes et nouveautés</string>
+    <string name="unlock_req_title">Demandes de déverrouillage</string>
+    <string name="unlock_req_desc">Être notifié quand l\'enfant demande un déverrouillage</string>
+    <string name="usage_alerts_title">Alertes d\'utilisation</string>
+    <string name="usage_alerts_desc">Alerter quand les limites sont atteintes</string>
+    
+    <string name="appearance_title">Apparence</string>
+    <string name="dark_mode_title">Mode sombre</string>
+    <string name="dark_mode_desc">Activer le thème sombre</string>
+    <string name="dark_mode_coming_soon">Le mode sombre est en cours de développement et n\'est pas encore disponible. Restez à l\'écoute !</string>
+    <string name="got_it">Compris</string>
+    
+    <string name="help_title">Aide et support</string>
+    <string name="help_desc">Obtenir de l\'aide pour l\'appli</string>
+    <string name="help_intro">Nous avons rassemblé les questions les plus fréquentes pour vous aider à démarrer vite.</string>
+    <string name="help_questions_title">Questions fréquentes</string>
+    <string name="faq_pair_title">Comment jumeler l\'appareil de mon enfant ?</string>
+    <string name="faq_pair_answer">Ouvrez l\'onglet Cercle, puis choisissez Jumeler avec QR ou Scanner le réseau. Votre enfant ouvre l\'appli Kid Guard qui affiche un QR de jumelage. Quand l\'appareil apparaît, touchez-le pour vous connecter.</string>
+    <string name="faq_offline_title">Pourquoi je ne trouve pas l\'appareil de mon enfant ?</string>
+    <string name="faq_offline_answer">Assurez-vous que les deux téléphones sont sur le même réseau Wi-Fi et que l\'appli enfant est lancée. Si le Wi-Fi est indisponible, le jumelage par Bluetooth fonctionne aussi.</string>
+    <string name="faq_block_title">Comment bloquer une appli ?</string>
+    <string name="faq_block_answer">Ouvrez l\'appareil dans votre cercle, allez dans l\'onglet Applis, choisissez l\'appli et appuyez sur Bloquer ou Bloquer pendant pour choisir une durée. Le blocage Internet ne coupe que l\'accès réseau de l\'appli.</string>
+    <string name="faq_limits_title">Comment fixer des limites de temps ?</string>
+    <string name="faq_limits_answer">Dans l\'onglet Applis, vous pouvez fixer une limite quotidienne par appli. Les limites par catégorie et les règles de pause vous donnent encore plus de contrôle sur le temps d\'écran.</string>
+    <string name="faq_icon_title">L\'icône de l\'appli enfant a disparu</string>
+    <string name="faq_icon_answer">Elle a été masquée exprès. Depuis la console de l\'enfant vous pouvez réafficher l\'icône, ou votre enfant peut ouvrir l\'appli depuis l\'écran des applis récentes.</string>
+    <string name="faq_do_title">Que sont les contrôles Device Owner ?</string>
+    <string name="faq_do_answer">Des contrôles parentaux avancés comme les limites gérées et le contrôle Wi-Fi. Ils exigent d\'abord de configurer l\'appareil de l\'enfant comme appareil géré — voir le guide d\'installation Device Owner.</string>
+    <string name="faq_reports_title">Où trouver les rapports quotidiens ?</string>
+    <string name="faq_reports_answer">Ouvrez l\'onglet Activité. Les rapports quotidiens apparaissent dès qu\'un appareil jumelé commence à partager son utilisation.</string>
+    <string name="help_troubleshooting_title">Dépannage</string>
+    <string name="help_troubleshooting_hint">Toujours bloqué ? Ces vérifications rapides règlent la plupart des problèmes.</string>
+    <string name="tip_same_network">Les deux téléphones doivent être sur le même réseau Wi-Fi.</string>
+    <string name="tip_child_app_running">L\'appli enfant doit être ouverte et active sur l\'appareil de l\'enfant.</string>
+    <string name="tip_bluetooth_pair">Pas de Wi-Fi ? Utilisez plutôt le jumelage par Bluetooth.</string>
+    <string name="tip_reset_pin">PIN enfant oublié ? Réinitialisez-le depuis la console de l\'enfant.</string>
+    <string name="tip_refresh_report">Rapports vides ? Actualisez l\'appareil et réessayez.</string>
+    <string name="help_contact_title">Contact et avis</string>
+    <string name="help_contact_desc">Un bug ou une idée ? Ouvrez un ticket sur GitHub et nous y jetterons un œil.</string>
+    <string name="help_report_issue">Signaler un problème</string>
+    <string name="help_view_source">Voir le code source</string>
+    <string name="help_questions_more">D\'autres questions ? Ouvrez un ticket sur GitHub.</string>
+    <string name="privacy_title">Politique de confidentialité</string>
+    <string name="privacy_desc">Lire notre politique de confidentialité</string>
+    
+    <string name="set_pin_btn">Définir le PIN</string>
+    <string name="enter_pin">Saisir le PIN</string>
+    <string name="confirm_pin">Confirmer le PIN</string>
+    <string name="pin_error_short">Le PIN doit comporter au moins 4 chiffres</string>
+    <string name="pin_error_mismatch">Les PIN ne correspondent pas</string>
+    <string name="pin_dialog_title">Définir le PIN</string>
+    <string name="pin_dialog_desc">Créez un PIN de 4 à 6 chiffres pour protéger l\'accès à cette appli.</string>
+    <string name="pin_dialog_change_title">Changer le PIN</string>
+    <string name="pin_dialog_change_desc">Saisissez votre nouveau PIN de 4 à 6 chiffres.</string>
+    <string name="pin_save_btn">Enregistrer</string>
+    <string name="pin_status_enabled">PIN activé</string>
+    <string name="pin_status_disabled">Aucun PIN défini</string>
+    <string name="pin_manage_desc">Votre PIN est actif. Que voulez-vous faire ?</string>
+    <string name="pin_remove_btn">Supprimer le PIN</string>
+    <string name="pin_change_btn">Changer le PIN</string>
+    <string name="close">Fermer</string>
+
+    <!-- About Features -->
+    <string name="feature_view_apps">Voir toutes les applis installées</string>
+    <string name="feature_monitor_usage">Surveiller l\'utilisation des applis</string>
+    <string name="feature_time_limits">Fixer des limites de temps</string>
+    <string name="feature_block_apps">Bloquer des applis à distance</string>
+    
+    <!-- Dashboard -->
+    <string name="welcome_back">Bon retour</string>
+    <string name="section_connected_devices">Appareils connectés</string>
+    <string name="view_all">Tout voir</string>
+    <string name="section_quick_actions">Actions rapides</string>
+    <string name="action_lock_all">Tout verrouiller</string>
+    <string name="action_lock_all_desc">Verrouiller tous les appareils</string>
+    <string name="action_add_device">Ajouter un appareil</string>
+    <string name="action_add_device_desc">Scanner le QR code</string>
+    <string name="tip_title">Astuce pro</string>
+    <string name="tip_desc">Fixez des limites d\'utilisation pour chaque catégorie d\'applis afin de bien gérer le temps d\'écran.</string>
+    <string name="no_devices_title">Aucun appareil connecté</string>
+    <string name="no_devices_desc">Scannez le QR code sur l\'appareil de votre enfant pour vous connecter</string>
+    
+    <!-- Status Chips & Stats -->
+    <string name="status_devices">Appareils</string>
+    <string name="status_online">En ligne</string>
+    <string name="status_offline">Hors ligne</string>
+    <string name="status_bt">Bluetooth</string>
+    <string name="connection_local">Local</string>
+    <string name="connection_relay">Relais</string>
+    <string name="status_protection">Protection</string>
+    <string name="status_active">Active</string>
+    <string name="stat_total_devices">Appareils au total</string>
+    <string name="stat_blocked_today">Bloqués aujourd\'hui</string>
+    <string name="stat_screen_time">Temps d\'écran</string>
+    <!-- Device Control - Dialogs -->
+    <string name="dialog_rename_title">Renommer l\'appareil</string>
+    <string name="dialog_rename_label">Nom de l\'appareil</string>
+    <string name="dialog_edit_category_title">Modifier la catégorie de l\'appli</string>
+    <string name="dialog_timer_title">Minuteur d\'appli</string>
+    <string name="dialog_timer_desc">L\'appli se verrouillera automatiquement après :</string>
+    <string name="dialog_category_timer_title">Minuteur de catégorie</string>
+    <string name="dialog_category_timer_desc">La catégorie se verrouillera automatiquement après :</string>
+    <string name="dialog_timer_custom">Perso…</string>
+    <string name="dialog_custom_timer_title">Durée personnalisée</string>
+    <string name="dialog_custom_timer_label">Saisir la durée en minutes :</string>
+    <string name="action_set_timer">Lancer le minuteur</string>
+    <string name="action_set">OK</string>
+    
+    <!-- Device Control - Actions -->
+    <string name="action_unhide_icon">Réafficher l\'icône enfant</string>
+    <string name="action_hide_icon">Masquer l\'icône enfant</string>
+    <string name="action_unblock">Débloquer</string>
+    <string name="action_block">Bloquer</string>
+    <string name="action_refresh_apps">Actualiser la liste des applis</string>
+    <string name="apps_refreshing">Actualisation des applis…</string>
+    <string name="apps_refresh_success">Liste des applis actualisée</string>
+    <string name="apps_refresh_failed">Actualisation impossible</string>
+    <string name="action_cancel_timer">Annuler le minuteur</string>
+    <string name="action_refresh_report">Actualiser le rapport</string>
+    
+    <!-- Device Control - Labels -->
+    <string name="label_todays_screen_time">Temps d\'écran du jour</string>
+    <string name="label_limit_suffix">sur une limite de 8 h</string>
+    <string name="label_top_apps">Applis favorites du jour</string>
+    <string name="label_no_usage_data">Aucune donnée d\'utilisation</string>
+    <string name="placeholder_search_apps">Rechercher des applis…</string>
+    <string name="label_all">Tout</string>
+    <string name="label_no_apps_found">Aucune appli trouvée</string>
+    <string name="title_category_limits">Limites de temps par catégorie</string>
+    <string name="desc_category_limits">Fixez des limites quotidiennes pour chaque catégorie d\'applis</string>
+    <string name="status_loading_report">Chargement du rapport…</string>
+    <string name="label_total">Total</string>
+    <string name="title_hourly_timeline">Utilisation par heure</string>
+    <string name="desc_hourly_timeline">Montre combien l\'appareil a été utilisé à chaque heure de la journée.</string>
+    <string name="label_no_hourly_data">Aucune donnée horaire</string>
+    <string name="title_usage_by_category">Utilisation par catégorie</string>
+    <string name="label_limit_mins">Limite : %d min</string>
+    <string name="label_no_limit">Sans limite</string>
+    <string name="label_apps_in_category">Applis de cette catégorie :</string>
+    <string name="label_more_apps">+ %d autres</string>
+    <string name="label_apps">applis</string>
+    <string name="label_none">Aucune</string>
+    <string name="label_daily_limit">Limite quotidienne : %d min</string>
+
+    <!-- Discovery -->
+    <string name="title_discovery">Détection d\'appareils</string>
+    <string name="status_scanning">Analyse du réseau…</string>
+    <string name="status_devices_saved">%d appareil(s) enregistré(s)</string>
+    <string name="indicator_searching">Recherche d\'appareils sur votre réseau…</string>
+    <string name="empty_searching_title">Recherche…</string>
+    <string name="empty_no_devices_found">Aucun appareil trouvé</string>
+    <string name="empty_scanning_desc">Recherche d\'appareils sur votre réseau local</string>
+    <string name="empty_no_devices_desc">Assurez-vous que l\'appareil de votre enfant est sur le même réseau Wi-Fi</string>
+    <string name="action_retry">Réessayer</string>
+    <!-- Unlock Request Screen -->
+    <string name="title_unlock_request">Demande de déverrouillage</string>
+    <string name="request_desc_part2">demande un déverrouillage</string>
+    <string name="request_type_app">une appli</string>
+    <string name="request_type_device">l\'appareil</string>
+    <string name="label_grant_access">Accorder un accès temporaire</string>
+    <string name="action_unlock">Déverrouiller</string>
+    <string name="action_deny_request">Refuser la demande</string>
+    <string name="request_allow_new">Autoriser une nouvelle demande</string>
+    <string name="child_pin_protection_title">PIN de l\'appli enfant</string>
+    <string name="child_pin_protection_desc">Exiger un PIN pour ouvrir les réglages sur l\'appareil de l\'enfant. Vous seul pouvez le modifier.</string>
+    <string name="dialog_custom_duration_title">Durée personnalisée</string>
+    <string name="dialog_custom_duration_label">Saisir la durée de déverrouillage en minutes :</string>
+    <string name="placeholder_duration_example">p. ex. 45</string>
+    <string name="action_approve">Approuver</string>
+    <string name="label_10m">+10 min</string>
+    <string name="label_15m">+15 min</string>
+    <string name="label_custom">Perso</string>
+
+    <!-- PIN Lock Screen -->
+    <string name="title_app_locked">Appli verrouillée</string>
+    <string name="desc_enter_pin">Saisissez votre PIN pour continuer</string>
+    <string name="label_pin">PIN</string>
+    <string name="error_invalid_pin">PIN invalide. Réessayez.</string>
+    <string name="action_unlock_biometric">Déverrouillage biométrique</string>
+
+    <!-- Take a Break -->
+    <string name="title_take_a_break">Faire une pause</string>
+    <string name="desc_take_a_break">Pauses imposées après utilisation cumulée</string>
+    <string name="label_usage_limit">Limite d\'utilisation (minutes)</string>
+    <string name="label_break_duration">Durée de pause (minutes)</string>
+    <string name="btn_apply_break">Appliquer les règles de pause</string>
+
+    <!-- ============ AURA 2026 ============ -->
+    <string name="splash_tagline">Le centre de commande calme de votre famille</string>
+    <string name="splash_secure">SÉCURISÉ / PRÊT</string>
+    <string name="splash_status">INITIALISATION DU BOUCLIER FAMILIAL</string>
+    <string name="pulse_greeting_morning">Bonjour</string>
+    <string name="pulse_greeting_afternoon">Bon après-midi</string>
+    <string name="pulse_greeting_evening">Bonsoir</string>
+    <string name="pulse_title">KID GUARD</string>
+    <string name="pulse_subtitle">Votre famille en un coup d\'œil</string>
+    <string name="pulse_screen_time_today">Temps d\'écran du jour</string>
+    <string name="pulse_goal">sur un objectif de 8 h</string>
+    <string name="pulse_shields_up">Boucliers levés</string>
+    <string name="pulse_attention">%d appareil(s) à surveiller</string>
+    <string name="pulse_your_circle">Votre cercle</string>
+    <string name="pulse_empty_title">Votre cercle est vide</string>
+    <string name="pulse_empty_desc">Jumelez l\'appareil de votre enfant pour protéger son monde numérique.</string>
+    <string name="pulse_pair_first">Jumeler le premier appareil</string>
+    <string name="circle_title">Le Cercle</string>
+    <string name="circle_subtitle">Appareils sous votre garde</string>
+    <string name="circle_scan_network">Scanner le réseau</string>
+    <string name="circle_pair_bluetooth">Jumeler par Bluetooth</string>
+    <string name="bluetooth_pair_title">Jumeler par Bluetooth</string>
+    <string name="bluetooth_pair_desc">Détecter un appareil enfant proche via Bluetooth. Fonctionne sans le même réseau Wi-Fi.</string>
+    <string name="bluetooth_required_title">Activez le Bluetooth</string>
+    <string name="bluetooth_required_desc">Le Bluetooth doit être activé pour que Kid Guard trouve l\'appareil de l\'enfant et s\'y connecte.</string>
+    <string name="bluetooth_enable_action">Activer le Bluetooth</string>
+    <string name="bluetooth_scan_action">Scanner à nouveau</string>
+    <string name="bluetooth_scanning">Recherche d\'appareils proches…</string>
+    <string name="bluetooth_none_found">Aucun appareil trouvé</string>
+    <string name="bluetooth_none_found_desc">Gardez Kid Guard ouvert sur l\'appareil de l\'enfant, autorisez la visibilité Bluetooth et gardez les deux appareils proches.</string>
+    <string name="bluetooth_connect">Connecter</string>
+    <string name="bluetooth_in_circle">Dans le cercle</string>
+    <string name="circle_scanning">Analyse…</string>
+    <string name="circle_pair_qr">Jumeler avec QR</string>
+    <string name="circle_radar_hint">Les appareils de votre Wi-Fi apparaissent automatiquement</string>
+    <string name="circle_remove_title">Retirer l\'appareil ?</string>
+    <string name="circle_remove_desc">%s quittera votre cercle. Vous pourrez le jumeler à nouveau à tout moment.</string>
+    <string name="circle_remove_action">Retirer</string>
+    <string name="circle_hold_hint">Appui long sur un appareil pour le retirer</string>
+    <string name="circle_reset_title">Réinitialiser le cercle ?</string>
+    <string name="circle_reset_desc">Tous les appareils jumelés seront retirés de cette appli. Vous pourrez les jumeler à nouveau à tout moment.</string>
+    <string name="circle_reset_action">Réinitialiser le cercle</string>
+    <string name="console_now">Maintenant</string>
+    <string name="console_apps">Applis</string>
+    <string name="console_boundaries">Limites</string>
+    <string name="console_rhythm">Rythme</string>
+    <string name="console_activity">Activité</string>
+    <string name="console_shield_engaged">Bouclier levé</string>
+    <string name="console_at_ease">En pause</string>
+    <string name="console_engage">Lever le bouclier</string>
+    <string name="console_release">Baisser le bouclier</string>
+    <string name="console_screen_time">Temps d\'écran</string>
+    <string name="console_battery">Batterie</string>
+    <string name="console_rules">Règles actives</string>
+    <string name="console_app_icon">Icône de l\'appli enfant</string>
+    <string name="console_hidden">Masquée</string>
+    <string name="console_visible">Visible</string>
+    <string name="console_reset_pin">Réinitialiser le PIN enfant</string>
+    <string name="console_reset_pin_title">Réinitialiser le PIN enfant ?</string>
+    <string name="console_reset_pin_desc">Le PIN sur %s sera effacé. Faites-le seulement si votre enfant l\'a oublié.</string>
+    <string name="console_reset_pin_desc_none">Aucun PIN défini sur %s — rien à effacer.</string>
+    <string name="console_remove_device">Retirer du cercle</string>
+    <string name="console_top_apps">Applis favorites du jour</string>
+    <string name="apps_allowance">Autorisation</string>
+    <string name="apps_cancel_allowance">Annuler l\'autorisation</string>
+    <string name="apps_daily_limit">Limite quotidienne</string>
+    <string name="apps_app">Appli</string>
+    <string name="apps_internet">Internet</string>
+    <string name="apps_block_now">Bloquer</string>
+    <string name="apps_unblock">Débloquer</string>
+    <string name="apps_block_for">Bloquer pendant</string>
+    <string name="apps_block_for_desc">Cette appli sera bloquée pendant la durée choisie.</string>
+    <string name="apps_blocked_status">Bloquée</string>
+    <string name="apps_allowed_status">Autorisée</string>
+    <string name="apps_controls_hint">Appli bloque toute l\'appli. Internet ne bloque que son accès réseau. Utilisez Bloquer pendant pour choisir une durée.</string>
+    <string name="apps_blocked_now">Appli bloquée</string>
+    <string name="apps_block_duration_set">Appli bloquée pendant %d minutes</string>
+    <string name="apps_block_failed">Blocage impossible</string>
+    <string name="apps_limit_set">Limite : %dm</string>
+    <string name="rhythm_title">Rythme</string>
+    <string name="rhythm_subtitle">Pauses automatiques pour les yeux et l\'esprit</string>
+    <string name="rhythm_on_break">En pause</string>
+    <string name="rhythm_monitoring">Actif et en surveillance</string>
+    <string name="rhythm_disabled">Désactivé</string>
+    <string name="rhythm_break_after">Pause après %d min d\'utilisation</string>
+    <string name="rhythm_rest">Durée de repos : %d min</string>
+    <string name="rhythm_notify">Prévenir avant la pause</string>
+    <string name="rhythm_notify_desc">Rappeler à l\'enfant avant le verrouillage</string>
+    <string name="rhythm_warning_before">Alerte : %d min avant</string>
+    <string name="rhythm_learning_only">Apprentissage seul</string>
+    <string name="rhythm_learning_desc">Garder les applis éducatives ouvertes</string>
+    <string name="rhythm_extensions">Autoriser les extensions</string>
+    <string name="rhythm_extensions_desc">L\'enfant peut demander +1 min</string>
+    <string name="rhythm_save">Enregistrer</string>
+    <string name="rhythm_turn_off">Désactiver</string>
+    <string name="rhythm_end_break">Terminer la pause</string>
+    <string name="rhythm_locked_desc">Cet appareil se repose. Il se déverrouille tout seul à la fin de la pause.</string>
+    <string name="rhythm_info">Programmez des pauses automatiques pour protéger les yeux et la concentration.</string>
+    <string name="insights_title">Activité</string>
+    <string name="insights_subtitle">L\'histoire des écrans de votre famille</string>
+    <string name="insights_week_total">7 derniers jours</string>
+    <string name="insights_week_avg">Moyenne quotidienne</string>
+    <string name="insights_empty_title">Aucun rapport pour l\'instant</string>
+    <string name="insights_empty_desc">Les rapports quotidiens apparaîtront ici dès qu\'un appareil jumelé partagera son utilisation.</string>
+    <string name="control_title">Contrôle</string>
+    <string name="control_subtitle">Réglez Kid Guard à votre goût</string>
+    <string name="request_wants_time">demande plus de temps</string>
+    <string name="request_wants_app">veut ouvrir</string>
+    <string name="request_wants_device">demande à déverrouiller l\'appareil</string>
+    <string name="request_approve_extension">Approuver (+1 min)</string>
+    <string name="request_unlock_permanent">Déverrouiller définitivement</string>
+    <string name="request_grant_access">Accorder l\'accès pour</string>
+    <string name="pairing_title">Jumeler un appareil</string>
+    <string name="today">Aujourd\'hui</string>
+    <string name="report_total_label">Temps d\'écran total</string>
+    <string name="blocking_style_title">Style d\'écran de blocage</string>
+    <string name="blocking_style_desc">Choisissez l\'apparence des applis bloquées et des limites sur cet appareil enfant.</string>
+    <string name="blocking_style_current">Garde classique</string>
+    <string name="blocking_style_current_desc">L\'écran Kid Guard actuel.</string>
+    <string name="blocking_style_current_preview">Appli bloquée</string>
+    <string name="blocking_style_blackout">Écran noir</string>
+    <string name="blocking_style_blackout_desc">Un simple écran noir, effet téléphone éteint.</string>
+    <string name="blocking_style_blackout_preview">Bloqué</string>
+    <string name="blocking_style_quiet_focus">Pause calme</string>
+    <string name="blocking_style_quiet_focus_desc">Un écran sombre et calme avec un message de pause clair et un repère de temps.</string>
+    <string name="blocking_style_focus_preview">Pause</string>
+    <string name="blocking_style_selected">Sélectionné</string>
+    <string name="blocking_style_saved">Style d\'écran enregistré</string>
+    <string name="blocking_style_save_failed">Enregistrement impossible</string>
+    <string name="console_device_owner">Avancé</string>
+    <string name="device_owner_controls_title">Contrôles Device Owner</string>
+    <string name="device_owner_access_granted">Accès Device Owner accordé</string>
+    <string name="device_owner_access_granted_desc">Les contrôles puissants sont déverrouillés sur cet appareil</string>
+    <string name="device_owner_status_available">Privilèges Device Owner confirmés</string>
+    <string name="device_owner_status_unavailable">Contrôles avancés indisponibles</string>
+    <string name="device_owner_status_unknown">Statut des privilèges non reçu</string>
+    <string name="device_owner_unavailable_title">Contrôle indisponible</string>
+    <string name="device_owner_unknown_desc">Cet appareil enfant n\'a pas encore confirmé le privilège requis. Aucune commande envoyée.</string>
+    <string name="device_owner_unavailable_desc">Cet appareil enfant n\'a pas le privilège Device Owner requis. Configurez-le d\'abord, puis actualisez l\'appareil.</string>
+    <string name="device_owner_setup_action">Guide d\'installation</string>
+    <string name="device_owner_lock_title">Verrou Device Owner</string>
+    <string name="device_owner_lock_desc">Utiliser le verrouillage géré au lieu du bouclier de base.</string>
+    <string name="device_owner_lock_action">Verrouiller</string>
+    <string name="device_owner_set_limit_action">Fixer la limite</string>
+    <string name="device_owner_device_limit_title">Limite d\'utilisation de l\'appareil</string>
+    <string name="device_owner_device_limit_desc">Verrouiller l\'appareil enfant à la fin de son quota géré.</string>
+    <string name="device_owner_app_limit_title">Limite d\'appli gérée</string>
+    <string name="device_owner_app_limit_desc">Suspendre cette appli à la fin de son quota géré.</string>
+    <string name="device_owner_wifi_title">Contrôle Wi-Fi</string>
+    <string name="device_owner_wifi_desc">Demander un état Wi-Fi géré sur l\'appareil enfant.</string>
+    <string name="device_owner_wifi_on">Activer</string>
+    <string name="device_owner_wifi_off">Désactiver</string>
+    <string name="device_owner_apps_title">Contrôles d\'applis gérés</string>
+    <string name="device_owner_suspend_action">Suspendre</string>
+    <string name="device_owner_resume_action">Reprendre</string>
+    <string name="device_owner_uninstall_action">Protéger</string>
+    <string name="device_owner_unprotect_action">Déprotéger</string>
+    <string name="device_owner_limit_action">Limiter</string>
+    <string name="device_owner_suspended_status">Suspendue</string>
+    <string name="device_owner_protected_status">Protégée</string>
+    <string name="device_owner_apps_empty">Aucune appli signalée — actualisez les stats pour charger la liste.</string>
+    <string name="device_owner_status_partial">%1$d contrôles sur %2$d dispos</string>
+    <string name="device_owner_restrictions_title">Restrictions système</string>
+    <string name="device_owner_restrictions_desc">Appliquer une restriction Android prise en charge.</string>
+    <string name="device_owner_restrict_install">Bloquer l\'installation d\'applis</string>
+    <string name="device_owner_restrict_accounts">Bloquer les modifs de comptes</string>
+    <string name="device_owner_restrict_users">Bloquer les nouveaux utilisateurs</string>
+    <string name="device_owner_restrict_action">Appliquer</string>
+    <string name="device_owner_restrict_clear_action">Effacer</string>
+    <string name="device_owner_guide_title">Installation Device Owner</string>
+    <string name="device_owner_guide_subtitle">Préparer un appareil enfant pour les contrôles avancés</string>
+    <string name="device_owner_guide_settings_desc">Apprenez à activer des contrôles renforcés sur l\'appareil enfant</string>
+    <string name="device_owner_guide_intro">Device Owner est un mode Android d\'appareil géré. Ce n\'est pas une simple autorisation d\'appli et cela exige généralement de configurer le téléphone enfant après réinitialisation ou depuis une configuration neuve.</string>
+    <string name="device_owner_guide_adb_label">Commande ADB de test (après reset seulement, avec l\'APK enfant installé)</string>
+    <string name="device_owner_guide_adb_command">adb shell dpm set-device-owner com.android.system.services.internal/com.parentalguard.child.receiver.AdminReceiver</string>
+    <string name="device_owner_guide_step_1">Sauvegardez l\'important, puis réinitialisez l\'appareil enfant s\'il est déjà configuré pour un usage personnel.</string>
+    <string name="device_owner_guide_step_2">Installez Kid Guard sur l\'appareil enfant avant de finir la configuration Android.</string>
+    <string name="device_owner_guide_step_3">Déclarez Kid Guard comme Device Owner via votre méthode de provisionnement Android Enterprise ou votre commande de configuration d\'appareil géré.</string>
+    <string name="device_owner_guide_step_4">Ouvrez l\'appli enfant, terminez le jumelage avec l\'appli parent et gardez le service enfant actif.</string>
+    <string name="device_owner_guide_step_5">Revenez à la console de cet enfant et actualisez. Chaque contrôle avancé n\'est dispo qu\'après confirmation par l\'enfant.</string>
+    <string name="device_owner_guide_note">L\'installation Device Owner dépend de l\'appareil. N\'utilisez ni root ni outils non officiels, et ne supposez pas qu\'un appareil connecté gère les contrôles avancés.</string>
+    <string name="device_owner_app_suspended">Appli suspendue</string>
+    <string name="device_owner_app_resumed">Appli reprise</string>
+    <string name="device_owner_uninstall_enabled">Protection anti-désinstall activée</string>
+    <string name="device_owner_uninstall_disabled">Protection anti-désinstall désactivée</string>
+    <string name="device_owner_restriction_updated">Restriction mise à jour</string>
+    <string name="device_owner_device_locked">Appareil verrouillé (Device Owner)</string>
+    <string name="device_owner_device_unlocked">Appareil déverrouillé</string>
+    <string name="device_owner_device_limit_updated">Limite d\'utilisation mise à jour</string>
+    <string name="device_owner_app_limit_updated">Limite d\'appli mise à jour</string>
+    <string name="device_owner_wifi_enabled">Wi-Fi activé</string>
+    <string name="device_owner_wifi_disabled">Wi-Fi désactivé</string>
+    <string name="device_owner_screen_lock_title">Verrou d\'écran de la tablette</string>
+    <string name="device_owner_screen_lock_desc">Effacer le PIN, schéma ou mot de passe de la tablette enfant.</string>
+    <string name="device_owner_screen_lock_action">Effacer le verrou</string>
+    <string name="device_owner_screen_lock_confirm_title">Effacer le verrou d\'écran de la tablette ?</string>
+    <string name="device_owner_screen_lock_confirm_body">Cela supprime le PIN / schéma / mot de passe de %1$s. Faites-le seulement si votre enfant l\'a oublié — quiconque tient la tablette pourra l\'ouvrir jusqu\'à la définition d\'un nouveau verrou.</string>
+    <string name="device_owner_screen_lock_cleared">Verrou d\'écran effacé</string>
+    <string name="device_owner_command_failed">Commande Device Owner échouée</string>
+    <string name="share_child_apk_title">Envoyer l\'appli enfant</string>
+    <string name="share_child_apk_desc">Partagez l\'APK enfant avec l\'appareil enfant via Quick Share, Bluetooth ou une autre appli de transfert.</string>
+    <string name="share_child_apk_chooser">Envoyer Kid Guard vers l\'appareil enfant</string>
+    <string name="share_child_apk_unavailable">L\'APK enfant n\'est pas dispo dans cette version parent.</string>
+
+    <!-- ============ Onboarding ============ -->
+    <string name="onboarding_skip">Passer</string>
+    <string name="onboarding_next">Suivant</string>
+    <string name="onboarding_get_started">Commencer</string>
+    <string name="onboarding_welcome_title">Bienvenue sur Kid Guard</string>
+    <string name="onboarding_welcome_body">Le centre de commande calme de votre famille. Surveillez le temps d\'écran, fixez des limites et protégez vos enfants en ligne — tout depuis une seule appli.</string>
+    <string name="onboarding_discover_title">Trouvez leur appareil</string>
+    <string name="onboarding_discover_body">Ouvrez Le Cercle et touchez Scanner le réseau. Tout appareil avec Kid Guard sur le même Wi-Fi apparaît automatiquement. Pas de Wi-Fi ? Jumelez plutôt par Bluetooth.</string>
+    <string name="onboarding_discover_path">Le Cercle → Scanner le réseau</string>
+    <string name="onboarding_install_title">Envoyez l\'appli enfant</string>
+    <string name="onboarding_install_body">Le téléphone de votre enfant a besoin de sa propre copie de Kid Guard. Ouvrez Contrôle et touchez Envoyer l\'appli enfant pour partager l\'APK via Quick Share, Bluetooth ou toute appli de transfert.</string>
+    <string name="onboarding_install_path">Contrôle → Envoyer l\'appli enfant</string>
+    <string name="onboarding_pair_title">Scannez pour connecter</string>
+    <string name="onboarding_pair_body">Ouvrez Kid Guard sur le téléphone de l\'enfant et gardez son QR affiché. Sur votre téléphone, touchez Jumeler avec QR et scannez-le — l\'appareil rejoint votre cercle aussitôt.</string>
+    <string name="onboarding_pair_path">Jumeler avec QR</string>
+    <string name="onboarding_control_title">Gardez et guidez</string>
+    <string name="onboarding_control_body">Touchez un appareil pour ouvrir sa console. Verrouillez l\'écran, bloquez des applis, fixez des limites quotidiennes, faites des pauses et suivez le rapport du jour.</string>
+    <string name="onboarding_control_path">Console de l\'appareil</string>
+
+    <!-- ============ Device Owner guide (full Samsung tutorial) ============ -->
+    <string name="device_owner_guide_copy">Copier</string>
+    <string name="device_owner_guide_copied">Commande copiée — collez-la dans PowerShell / terminal</string>
+    <string name="device_owner_guide_phase_1_title">Sauvegardez, puis réinitialisez</string>
+    <string name="device_owner_guide_phase_1_body">Device Owner ne marche que sur un appareil neuf. Sauvegardez photos et fichiers, puis Paramètres → Gestion globale → Réinitialisation → Réinitialiser toutes les données.</string>
+    <string name="device_owner_guide_phase_2_title">Premier démarrage : sans comptes</string>
+    <string name="device_owner_guide_phase_2_body">Connectez le Wi-Fi, mais n\'ajoutez encore aucun compte Google ni Samsung. Ignorez la connexion — les comptes bloquent la commande owner.</string>
+    <string name="device_owner_guide_phase_3_title">Activez le débogage USB</string>
+    <string name="device_owner_guide_phase_3_body">Paramètres → À propos de la tablette → Infos logiciel → touchez 7 fois Numéro de version. Puis Options développeur → Débogage USB ON. Connectez au PC et acceptez l\'invite.</string>
+    <string name="device_owner_guide_phase_4_title">Installez l\'APK enfant</string>
+    <string name="device_owner_guide_phase_4_body">Depuis cette appli parent utilisez « Envoyer l\'appli enfant », ou depuis le PC : adb install -r kidguard-child.apk. Vérifiez avec : adb devices.</string>
+    <string name="device_owner_guide_phase_5_title">Déclarez Kid Guard Device Owner</string>
+    <string name="device_owner_guide_phase_5_body">Sur PC, lancez la commande ADB ci-dessus (bouton copier). En cas de succès : « Device owner set ». Vous pourrez ensuite rajouter les comptes.</string>
+    <string name="device_owner_guide_phase_6_title">Accordez chaque autorisation</string>
+    <string name="device_owner_guide_phase_6_body">Ouvrez l\'appli enfant : autorisez l\'accès utilisation, l\'affichage par-dessus, l\'accessibilité (Kid Guard Blocker) et le Bluetooth. Gardez son QR affiché.</string>
+    <string name="device_owner_guide_phase_7_title">Maintien Samsung (à ne pas sauter)</string>
+    <string name="device_owner_guide_phase_7_body">Applis → System Service → Batterie → Non restreinte. Batterie → Limites d\'arrière-plan → Applis jamais en veille → ajoutez-la. Maintenance → Optimisation auto OFF.</string>
+    <string name="device_owner_guide_phase_8_title">Jumelez depuis le parent</string>
+    <string name="device_owner_guide_phase_8_body">Appli parent → Le Cercle → Jumeler avec QR → scannez la tablette. Même Wi-Fi pour le premier jumelage ; Bluetooth et relais cloud ensuite.</string>
+    <string name="device_owner_guide_phase_9_title">Vérifiez, puis masquez l\'icône</string>
+    <string name="device_owner_guide_phase_9_body">Ouvrez la console enfant → Avancé → « privilèges confirmés ». Ensuite seulement, utilisez Masquer l\'icône dans l\'appli enfant. Gérez-la depuis le parent après.</string>
+    <string name="device_owner_guide_trouble_title">Si la commande échoue</string>
+    <string name="device_owner_guide_trouble_body">« Comptes ajoutés » → supprimez tous les comptes Google/Samsung et réessayez. « Déjà provisionné » → réinitialisez à nouveau. « Aucun appareil » → vérifiez le câble, adb devices, acceptez l\'invite USB.</string>
+
+    <!-- ============ Child updates (parent-pushed) ============ -->
+    <string name="child_update_title">Mises à jour de l\'appli enfant</string>
+    <string name="child_update_desc">Vérifiez les versions GitHub et poussez le nouvel APK vers les appareils jumelés</string>
+    <string name="child_update_check">Vérifier les mises à jour</string>
+    <string name="child_update_checking">Vérification des versions GitHub…</string>
+    <string name="child_update_up_to_date">L\'appli enfant est à jour</string>
+    <string name="child_update_available">Nouvelle version dispo : %1$s</string>
+    <string name="child_update_download_push">Télécharger et pousser vers %1$d appareil(s)</string>
+    <string name="child_update_download">Télécharger la mise à jour</string>
+    <string name="child_update_downloaded">%1$s téléchargé — poussez-le ou partagez le fichier</string>
+    <string name="child_update_push">Pousser vers %1$d appareil(s)</string>
+    <string name="child_update_share">Partager le fichier APK</string>
+    <string name="child_update_device_needs">• %1$s : %2$s → mise à jour dispo</string>
+    <string name="child_update_device_current">• %1$s : à jour (%2$s)</string>
+    <string name="child_update_device_offline">• %1$s : injoignable pour l\'instant</string>
+    <string name="child_update_all_current">Tous les appareils jumelés sont à jour.</string>
+    <string name="child_update_retry_push">Revérifier les versions</string>
+    <string name="child_update_verifying">Vérification des versions sur les appareils…</string>
+    <string name="child_update_cached">%1$s déjà téléchargé — pas besoin de retélécharger</string>
+    <string name="child_update_install_result">Résultat d\'install sur %1$s : %2$s</string>
+    <string name="child_update_push_again">Pousser à nouveau (sans télécharger)</string>
+    <string name="child_update_downloading">Téléchargement de la mise à jour…</string>
+    <string name="child_update_pushing">Envoi vers l\'appareil enfant… (gardez les deux sur le même Wi-Fi)</string>
+    <string name="child_update_success">Mise à jour poussée — l\'enfant l\'installe en silence (Owner) ou doit confirmer</string>
+    <string name="child_update_failed">Échec de la mise à jour : %1$s</string>
+    <string name="child_update_no_devices">Jumelez d\'abord un appareil enfant, puis poussez les mises à jour</string>
+    <string name="child_update_current">Installée : %1$s · Dernière : %2$s</string>
+</resources>

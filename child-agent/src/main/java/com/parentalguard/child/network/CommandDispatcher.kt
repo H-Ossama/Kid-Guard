@@ -23,6 +23,10 @@ object CommandDispatcher {
         return withContext(Dispatchers.IO) {
             try {
                 val response = when (command.commandType) {
+                    // Lightweight liveness probe used by the parent's presence
+                    // polling over LAN, Bluetooth and relay.
+                    CommandType.PING -> Packet.Response(true, "Pong")
+
                     CommandType.GET_STATS -> {
                         val monitor = UsageMonitor(context)
                         val p = context.packageManager
@@ -51,10 +55,13 @@ object CommandDispatcher {
                              blockingScreenStyle = RuleRepository.blockingScreenStyle.value,
                              childAppVersionName = runCatching { com.parentalguard.child.BuildConfig.VERSION_NAME }.getOrNull(),
                              childAppVersionCode = runCatching { com.parentalguard.child.BuildConfig.VERSION_CODE }.getOrDefault(0),
-                             childPinSet = com.parentalguard.child.security.PinManager.isPinSet(context),
-                             updateResult = com.parentalguard.child.update.ApkInstallReceiver.lastResult(context),
-                             pinProtectionEnabled = com.parentalguard.child.security.PinManager.isProtectionEnabled(context)
-                          ))
+                              childPinSet = com.parentalguard.child.security.PinManager.isPinSet(context),
+                              updateResult = com.parentalguard.child.update.ApkInstallReceiver.lastResult(context),
+                              pinProtectionEnabled = com.parentalguard.child.security.PinManager.isProtectionEnabled(context),
+                              deviceOwnerSuspended = RuleRepository.deviceOwnerManualSuspended.value +
+                                  RuleRepository.deviceOwnerUsageSuspended.value,
+                              deviceOwnerUninstallProtected = RuleRepository.deviceOwnerUninstallProtected.value
+                           ))
                      }
 
                     CommandType.SEND_DAILY_REPORT -> {
@@ -162,6 +169,12 @@ object CommandDispatcher {
                             RuleRepository.setAppTimer(command.packageName!!, duration)
                             Packet.Response(true, "App unlock approved")
                         } else {
+                            // A device-wide approval must lift a global lock —
+                            // a temporary allowance alone leaves the overlay up
+                            // and the approval visibly does nothing.
+                            if (RuleRepository.globalLock.value) {
+                                RuleRepository.setGlobalLock(false)
+                            }
                             val unlockUntil = System.currentTimeMillis() + duration
                             RuleRepository.setTemporaryUnlock(unlockUntil)
                             Packet.Response(true, "Device unlock approved")
@@ -238,6 +251,12 @@ object CommandDispatcher {
                             Packet.Response(false, "Invalid app suspension command")
                         } else {
                             val result = DeviceOwnerManager.setAppSuspended(context, packageName, suspended)
+                            // Track manual suspends separately from usage-limit
+                            // auto-suspends so MonitorService never auto-resumes
+                            // a parent-requested manual suspend.
+                            if (result.success) {
+                                RuleRepository.markDeviceOwnerManualSuspended(packageName, suspended)
+                            }
                             Packet.Response(result.success, result.message)
                         }
                     }
@@ -249,6 +268,9 @@ object CommandDispatcher {
                             Packet.Response(false, "Invalid uninstall protection command")
                         } else {
                             val result = DeviceOwnerManager.setUninstallProtection(context, packageName, enabled)
+                            if (result.success) {
+                                RuleRepository.markDeviceOwnerUninstallProtected(packageName, enabled)
+                            }
                             Packet.Response(result.success, result.message)
                         }
                     }

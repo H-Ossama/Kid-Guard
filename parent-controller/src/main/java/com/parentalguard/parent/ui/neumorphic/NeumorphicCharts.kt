@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.parentalguard.parent.ui.theme.MonoFontFamily
+import com.parentalguard.parent.ui.theme.trackingFor
 import com.parentalguard.parent.viewmodel.ConnectionType
 
 /** One data point for bars / donut charts. */
@@ -179,7 +180,7 @@ fun NeumorphicConnectionPill(type: ConnectionType) {
             fontFamily = MonoFontFamily,
             fontSize = 9.sp,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp
+            letterSpacing = trackingFor(1.sp)
         )
     }
 }

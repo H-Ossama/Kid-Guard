@@ -54,6 +54,7 @@ import com.parentalguard.parent.ui.neumorphic.NeumorphicStatusDot
 import com.parentalguard.parent.ui.neumorphic.NeumorphicUsageBar
 import com.parentalguard.parent.ui.neumorphic.Nm
 import com.parentalguard.parent.ui.theme.MonoFontFamily
+import com.parentalguard.parent.ui.theme.trackingFor
 import com.parentalguard.parent.viewmodel.ChildDevice
 import com.parentalguard.parent.viewmodel.ConnectionType
 import com.parentalguard.parent.viewmodel.DeviceStatusSummary
@@ -109,7 +110,7 @@ fun PulseScreen(
                             color = Nm.primary,
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.5.sp
+                            letterSpacing = trackingFor(2.5.sp)
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
@@ -167,7 +168,7 @@ fun PulseScreen(
                                     text = stringResource(R.string.pulse_screen_time_today).uppercase(),
                                     color = Nm.onSurfaceMuted,
                                     style = MaterialTheme.typography.labelSmall,
-                                    letterSpacing = 1.4.sp,
+                                    letterSpacing = trackingFor(1.4.sp),
                                     fontWeight = FontWeight.Medium
                                 )
                                 Spacer(Modifier.height(8.dp))
